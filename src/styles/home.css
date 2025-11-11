@@ -1,0 +1,110 @@
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background-color: #5b2b8f;
+  color: #ffffff; 
+}
+
+.home-page {
+  text-align: center;
+  padding: 50px 20px;
+  background-color: #5b2b8f;
+}
+
+.home-page h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.home-page p {
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+  color: #f3f3f3;
+}
+
+/* estilos para el catalogo*/
+.espacios-grid {
+  background-color: #4a2376; 
+  padding: 40px 30px;
+  border-top-left-radius: 40px;
+  border-top-right-radius: 40px;
+}
+
+.espacios-grid h2 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 40px;
+  color: #ffffff;
+}
+
+
+.espacio-card {
+  background-color: #ffffff;
+  color: #333333;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding-bottom: 15px;
+}
+
+.espacio-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.espacios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+
+.espacio-imagen {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-bottom: 4px solid #5b2b8f;
+}
+
+
+.espacio-card h3 {
+  font-size: 1.2rem;
+  margin-top: 12px;
+  color: #5b2b8f;
+}
+
+.espacio-card p {
+  font-size: 0.95rem;
+  padding: 0 15px;
+  color: #444;
+  line-height: 1.4;
+}
+
+.espacio-card .ubicacion {
+  font-style: italic;
+  color: #666;
+  margin-top: 5px;
+}
+
+button {
+  margin: 1px;
+}
+
+/* configuracion para que sea responsive*/
+@media (max-width: 768px) {
+  .home-page h1 {
+    font-size: 2rem;
+  }
+
+  .espacios-grid {
+    padding: 20px;
+  }
+
+  .espacio-imagen {
+    height: 150px;
+  }
+}

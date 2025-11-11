@@ -1,0 +1,65 @@
+/* Contenedor de editar espacios */
+.container.mt-5 {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.container.mt-5 h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.2rem;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+/* Formulario de edición */
+.container.mt-5 form {
+    background: linear-gradient(135deg, #4a2376 0%, #5b2b8f 100%);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.container.mt-5 form label {
+    display: block;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin: 15px 0 8px 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.container.mt-5 form label:first-of-type {
+    margin-top: 0;
+}
+
+/* Separador */
+.container.mt-5 hr {
+    border: none;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    margin: 40px 0;
+}
+
+/* Botón guardar */
+.container.mt-5 .btn-primary {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: #654cd6;
+}
+
+.container.mt-5 .btn-primary:hover {
+    background: #654cd6;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container.mt-5 form {
+        padding: 25px 20px;
+    }
+}
