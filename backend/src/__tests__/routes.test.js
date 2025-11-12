@@ -11,10 +11,9 @@ app.use(cors({
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 
-// Usar las rutas originales del proyecto
 app.use(require('../routes/index'));
 
-// Mock del módulo webpush para evitar envíos reales
+// Mock del módulo webpush
 jest.mock('../webpush', () => ({
   sendNotification: jest.fn().mockResolvedValue({ success: true }),
 }));
