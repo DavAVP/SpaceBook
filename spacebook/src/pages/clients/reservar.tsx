@@ -95,7 +95,21 @@ const Reservar: React.FC = () => {
       await fetch('http://localhost:8080/new-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: `Tienes una reserva pendiente para ${espacio.nombre_lugar}. ¡Confírmala!` })
+        body: JSON.stringify({ 
+          message: `Tienes una reserva pendiente para ${espacio.nombre_lugar}. ¡Confírmala!`,
+          userId: user.id,
+          role: 'cliente',
+          title: 'Reserva pendiente'
+        })
+      });
+
+      await fetch('http://localhost:8080/new-reservation-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `El usuario ${user.id} reservó el espacio ${espacio.nombre_lugar}.`,
+          title: 'Nueva Reserva Realizada'
+        })
       });
 
       // guardamos notificacion en el supabase
