@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../styles/login.css";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { AuthService } from "../services/auth.service";
 
 export default function Register() {
@@ -10,7 +10,7 @@ export default function Register() {
     const [errorPassword, setErrorPassword] = useState(false);
     const [mensajeError, setMensajeError] = useState("");
     const [mensajeExito, setMensajeExito] = useState("");
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 

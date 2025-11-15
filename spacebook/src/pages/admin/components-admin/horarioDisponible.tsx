@@ -35,7 +35,8 @@ export default function AgregarHorario({ idEspacio, onFinish }: Props) {
             espacio_id: idEspacio,
             dia_semana: diaSemana,
             horario_apertura: horaInicio,
-            horario_cierre: horaFin
+            horario_cierre: horaFin,
+            ocupado: false
         };
 
         const result = await HoraDisponibleService.crearHoraDisponible(horario);

@@ -4,6 +4,7 @@ import type { IEspacio } from "../../interfaces/Espacio";
 import { EspacioService } from "../../services/espacio.service";
 import "../../styles/home.css"
 import { useUser } from "../../context/usuario.context";
+import { toast } from "react-toastify";
 
 const PanelAdmin: React.FC = () => {
     const [espacios, setEspacios] = useState<IEspacio[]>([]);
@@ -40,8 +41,9 @@ const PanelAdmin: React.FC = () => {
         const eliminado = await EspacioService.EliminarEspacio(id_espacio, espacio_id);
         if(eliminado){
             setEspacios(prev => prev.filter(e => e.id_espacio !== id_espacio));
+            toast.success("Espacio eliminado correctamente");
         }else{
-            alert('no se pudo eliminar')
+            toast.error("No se pudo eliminar el espacio");
         }
     }
     

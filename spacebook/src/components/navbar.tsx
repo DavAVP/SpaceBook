@@ -14,7 +14,7 @@ const Navbar = () => {
     checkUser();
     
     // Escuchar cambios de autenticación
-    const { data: authListener } = AuthService.supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = AuthService.supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         checkUser();
       } else if (event === 'SIGNED_OUT') {
@@ -140,7 +140,7 @@ const Navbar = () => {
                     <button 
                       className="dropdown-item"
                       onClick={() => {
-                        navigate('/admin/confirmaciones');
+                        navigate('/admin/penalizaciones');
                         setShowUserMenu(false);
                       }}
                     >

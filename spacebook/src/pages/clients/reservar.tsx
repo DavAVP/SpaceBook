@@ -5,8 +5,11 @@ import type { IHorarioDisponible } from "../../interfaces/Horario_disponible";
 import { EspacioService } from "../../services/espacio.service";
 import { HoraDisponibleService } from "../../services/horaDisponible.service";
 import "../../styles/reservar.css";
+import { toast } from "react-toastify";
 import { useUser } from "../../context/usuario.context";
 import { ReservaService } from "../../services/reserva.service";
+import { PenalizacionService } from "../../services/penalizacion.service";
+import { NotificacionServices } from "../../services/notificacion.service";
 
 const Reservar: React.FC = () => {
   const { id } = useParams<{ id: string }>(); // ID del espacio
@@ -32,8 +35,10 @@ const Reservar: React.FC = () => {
 
         const horariosData = await HoraDisponibleService.ObtenerHoraDisponibles();
         if (horariosData) {
-          // Filtrar solo los del espacio actual
-          const horariosFiltrados = horariosData.filter((h) => h.espacio_id === id);
+          // Filtrar solo los del espacio actual y que no estén ocupados
+          const horariosFiltrados = horariosData.filter(
+            (h) => h.espacio_id === id && !h.ocupado
+          );
           setHorarios(horariosFiltrados);
         }
 
@@ -53,37 +58,80 @@ const Reservar: React.FC = () => {
 
   const handleReservar = async (espacio_id: string, horarioId: string) => {
     if (!user) {
-      alert("Debes iniciar sesión para reservar.");
+      toast.info("Debes iniciar sesión para reservar.");
       return;
     }
+    
+    // Bloqueo por penalización
+    const penalizado = await PenalizacionService.usuarioEstaPenalizado(user.id);
+    console.log("¿Penalizado?:", penalizado);
+    if (penalizado) {
+      toast.error("⛔ No puedes realizar reservas mientras estés penalizado!");
+      return;
+    }
+
+
     const horario = horarios.find(h => String(h.id_horario) === String(horarioId));
     if (!horario) {
-      alert("Horario inválido.");
+      toast.error("Horario inválido.");
       return;
     }
 
     const reservaPayload = {
       usuario_id: user.id,
       espacio_id: espacio_id,
+      horario_id: horarioId,
       hora_inicio: horario.horario_apertura,
       hora_fin: horario.horario_cierre,
-      estado: "confirmada",
+      estado: "pendiente",
       fecha_reserva: new Date().toISOString(),
-      fecha_cancelacion: null
     };
 
     try {
       const nuevaReserva = await ReservaService.crearReserva(reservaPayload);
       if (!nuevaReserva) throw new Error("No se pudo crear la reserva");
 
-      const actualizado = await EspacioService.cambiarDisponibilidad(espacio_id, false);
-      if (!actualizado) throw new Error("No se pudo actualizar la disponibilidad");
+      await fetch('http://localhost:8080/new-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Tienes una reserva pendiente para ${espacio.nombre_lugar}. ¡Confírmala!` })
+      });
 
-      alert("Reserva creada correctamente!");
+      await NotificacionServices.crearNotificacion({
+        id_notificacion: crypto.randomUUID(),
+        usuario_id: user.id,
+        reserva_id: String(nuevaReserva.id_reserva),
+        mensaje: `Tienes una reserva pendiente para ${espacio.nombre_lugar}. ¡Confírmala!`,
+        fecha_envio: new Date().toISOString(),
+      });
+
+      const horariosRestantes = await HoraDisponibleService.ObtenerHoraDisponibles();
+      const horariosValidos = Array.isArray(horariosRestantes) ? horariosRestantes : [];
+
+      const horariosDelEspacio = horariosValidos.filter(
+        (h) => h.espacio_id === espacio_id && !h.ocupado
+      );
+
+      setHorarios(horariosDelEspacio);
+
+      // Si ya no hay horarios libres, marcar el espacio como no disponible
+      if (horariosDelEspacio.length === 0) {
+        const actualizado = await EspacioService.cambiarDisponibilidad(espacio_id, false);
+        if (!actualizado) throw new Error("No se pudo actualizar la disponibilidad");
+      }
+
+      setHorarios(prev => prev.filter(h => String(h.id_horario) !== horarioId));
+      setSelectedHorarioId(null);
+
+      toast.success("Reserva creada correctamente!");
       navigate("/home");
-    } catch (error) {
-      console.error(error);
-      alert("Hubo un error al crear la reserva");
+    } catch (error: any) {
+      console.error("Error detallado al crear reserva:", error);
+      if (error?.message?.includes("ocupado") || error?.toString().includes("ocupado")) {
+      toast.error("Ese horario ya fue reservado, elige otro horario.");
+    } else {
+      toast.error("Hubo un error al crear la reserva: " + (error.message || error));
+    }
     }
   };
 
@@ -92,10 +140,7 @@ const Reservar: React.FC = () => {
       <h1>Reservar Espacio</h1>
 
       <div className="espacio-details">
-        <img 
-        src={espacio.foto_url} 
-        alt={espacio.nombre_lugar} />
-        
+        <img src={espacio.foto_url} alt={espacio.nombre_lugar} />
         <p><strong>Nombre:</strong> {espacio.nombre_lugar}</p>
         <p><strong>Descripción:</strong> {espacio.descripcion}</p>
         <p><strong>Capacidad:</strong> {espacio.capacidad}</p>
@@ -106,9 +151,7 @@ const Reservar: React.FC = () => {
         <ul className="horarios-list">
           {horarios.map((horario) => (
             <li key={horario.id_horario}>
-              <p>
-                🗓️ {horario.dia_semana} — ⏰ {horario.horario_apertura} a {horario.horario_cierre}
-              </p>
+              <p>🗓️ {horario.dia_semana} — ⏰ {horario.horario_apertura} a {horario.horario_cierre}</p>
               <label>
                 <input
                   type="radio"

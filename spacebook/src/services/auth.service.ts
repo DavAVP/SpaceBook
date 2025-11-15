@@ -1,4 +1,5 @@
 import { supabase } from "../api/supabase.config";
+import { toast } from "react-toastify";
 
 export const AuthService = {
     supabase,
@@ -46,8 +47,10 @@ export const AuthService = {
         const { error } = await supabase.auth.signOut()
         if(error){
             console.log("Error al cerrar session", error.message)
+            toast.error("Error al cerrar sesión: " + error.message)
+            return;
         }
-        alert("Gracias por visitarnos, vuelve pronto!")
+        toast.info("Gracias por visitarnos, vuelve pronto!")
         return;
     }
 }

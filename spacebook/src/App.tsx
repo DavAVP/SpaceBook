@@ -8,7 +8,12 @@ import { useUser } from './context/usuario.context'
 import EditarEspacios from './pages/admin/editarEspacios'
 import Reservar from './pages/clients/reservar'
 import Navbar from './components/navbar'
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useEffect } from 'react'
+import MisReservas from './pages/clients/components-clients/MisReservar'
+import Penalizacion from './pages/admin/components-admin/penalizacion'
+import { Suscripcion } from './utils/push'
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,65 +23,89 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
   const { user, loading } = useUser();
 
-  if (loading) {
-    console.log('ProtectedRoute: Loading...');
-    return <div>Cargando...</div>;
-  }
-
-  console.log('ProtectedRoute: User:', user);
-  console.log('ProtectedRoute: RequireAdmin:', requireAdmin);
-
-  if (!user) {
-    console.log('ProtectedRoute: No user, redirecting to login');
-    return <Navigate to="/" />;
-  }
-
-  if (requireAdmin && !user.is_admin) {
-    console.log('ProtectedRoute: User is not admin, redirecting to home');
-    return <Navigate to="/home" />;
-  }
+  if (loading) return <div>Cargando...</div>;
+  if (!user) return <Navigate to="/" />;
+  if (requireAdmin && !user.is_admin) return <Navigate to="/home" />;
 
   return children;
 };
 
 const App: React.FC = () => {
   const location = useLocation();
+  const { user } = useUser();   // ✔️ AHORA SÍ DENTRO DEL COMPONENTE
+
   const rutassinNavbar = ['/', '/register'];
   const mostrarNavbar = !rutassinNavbar.includes(location.pathname);
+  
+  useEffect(() => {
+    if (user) {
+      Suscripcion({
+        id: user.id,
+        is_admin: !!user.is_admin, // <-- forzamos boolean
+      })
+        .then(() => console.log("Suscripción lista", user.is_admin ? "(admin)" : "(cliente)"))
+        .catch(err => console.error('Error al suscribirse:', err));
+    }
+  }, [user]);
+
+
+
   return (
     <>
-    {mostrarNavbar && <Navbar />}
-    <Routes>
-      <Route path='/' element={<Login />} />
-      <Route path='/register' element={<Register />} />
-      <Route path='/reservar/:id' element={
-        <ProtectedRoute>
-          <Reservar/>
-        </ProtectedRoute>
-      } />
-      <Route path='/home' element={
-        <ProtectedRoute>
-          <Home/>
-        </ProtectedRoute>
-      } />
-      <Route path='/admin' element={
-        <ProtectedRoute requireAdmin={true}>
-          <PanelAdmin/>
-        </ProtectedRoute>
-      } />
-      <Route path='/admin/subir-espacios' element={
-        <ProtectedRoute requireAdmin={true}>
-          <SubirEspacios/>
-        </ProtectedRoute>
-      } />
-      <Route path='/admin/editar-espacios/:id' element={
-        <ProtectedRoute requireAdmin={true}>
-          <EditarEspacios/>
-        </ProtectedRoute>
-      }/>
-    </Routes>
+    <ToastContainer position="bottom-right" autoClose={4000} newestOnTop theme="colored" />
+      {mostrarNavbar && <Navbar />}
+
+      <Routes>
+        <Route path='/' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+
+        <Route path='/reservar/:id' element={
+          <ProtectedRoute>
+            <Reservar/>
+          </ProtectedRoute>
+        } />
+
+        <Route path='/mis-reservas' element={
+          <ProtectedRoute>
+            <MisReservas/>
+          </ProtectedRoute>
+        } />
+
+        <Route path='/home' element={
+          <ProtectedRoute>
+            <Home/>
+          </ProtectedRoute>
+        } />
+
+        <Route path='/admin' element={
+          <ProtectedRoute requireAdmin={true}>
+            <PanelAdmin/>
+          </ProtectedRoute>
+        } />
+
+        <Route path='/admin/subir-espacios' element={
+          <ProtectedRoute requireAdmin={true}>
+            <SubirEspacios/>
+          </ProtectedRoute>
+        } />
+
+        <Route path='/admin/editar-espacios/:id' element={
+          <ProtectedRoute requireAdmin={true}>
+            <EditarEspacios/>
+          </ProtectedRoute>
+        } />
+
+        <Route 
+          path="/admin/penalizaciones"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <Penalizacion />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </>
-  )
-}
+  );
+};
 
 export default App;
