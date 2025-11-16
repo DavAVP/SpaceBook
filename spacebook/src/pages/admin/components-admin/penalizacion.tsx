@@ -57,7 +57,7 @@ const Penalizacion: React.FC = () => {
         const diferencia = ahora.getTime() - fechaReserva.getTime();
 
         if (diferencia > TIEMPO_LIMITE) {
-          console.log(`Reserva ${reserva.id_reserva} ha superado el límite`);
+          console.log(`⏰ Reserva ${reserva.id_reserva} ha superado el límite`);
           // Notificar al admin
           await fetch("http://localhost:8080/new-penalization-admin", {
             method: "POST",
@@ -112,6 +112,7 @@ const Penalizacion: React.FC = () => {
       });
 
       toast.info(`🔔 Notificación enviada al usuario ${reserva.usuario_id}`);
+///
       // Crear penalización manual por 5 minutos en Supabase
       const ahora = new Date();
       const fin = new Date(ahora.getTime() + 5 * 60 * 1000); // +5 minutos
@@ -157,6 +158,7 @@ const Penalizacion: React.FC = () => {
       } catch (e) {
         console.log("No se pudo refrescar penalizaciones", e);
       }
+///
       setReservas((prev) =>
         prev.map((r) =>
           r.id_reserva === reserva.id_reserva

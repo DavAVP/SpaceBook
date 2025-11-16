@@ -31,7 +31,7 @@ export default function EditarHorarios({ idEspacio }: Props) {
     });
 
     if (actualizado) {
-      setMensaje("Horario actualizado");
+      setMensaje("Horario actualizado ✅");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
@@ -43,7 +43,7 @@ export default function EditarHorarios({ idEspacio }: Props) {
     const eliminado = await HoraDisponibleService.EliminarHorario(id_horario);
     if (eliminado) {
       setHorarios(prev => prev.filter(h => h.id_horario !== id_horario));
-      setMensaje("Horario eliminado");
+      setMensaje("Horario eliminado ✅");
       setTimeout(() => setMensaje(""), 2000);
     }
   };
