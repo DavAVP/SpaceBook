@@ -72,10 +72,10 @@ export default function EditarEspacios() {
     const result = await EspacioService.ActualizarEspacio(id!, updatedEspacio, id!, {});
 
     if (result) {
-      setMensaje("Espacio actualizado ✅");
+      setMensaje("Espacio actualizado");
       setTimeout(() => navigate("/admin"), 1500);
     } else {
-      setError("No se pudo actualizar el espacio ❌");
+      setError("No se pudo actualizar el espacio");
     }
   };
 

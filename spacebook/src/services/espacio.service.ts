@@ -1,7 +1,7 @@
+
 import { supabase } from "../api/supabase.config";
 import type { IEspacio } from "../interfaces/Espacio";
 import type { IHorarioDisponible } from "../interfaces/Horario_disponible";
-
 
 export const EspacioService = {
     //Crear espacio
@@ -24,7 +24,6 @@ export const EspacioService = {
             console.log('Error al actualizar disponibilidad', error); 
             return false;
         }
-
         return true;
     },
 

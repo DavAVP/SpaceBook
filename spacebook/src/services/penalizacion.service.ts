@@ -4,7 +4,6 @@ import type { IPenalizacion } from "../interfaces/Penalizacion";
 
 export const PenalizacionService = {
     //Crear penalizacion
-    /* async crearPenalizacion(penalizacion: IPenalizacion) { */
     async crearPenalizacion(penalizacion: Omit<IPenalizacion, "id_penalizacion">){
         const {data, error} = await supabase.from('Penalizacion').insert(penalizacion).select().single();
         if(error){
@@ -58,14 +57,14 @@ export const PenalizacionService = {
     async usuarioEstaPenalizado(usuario_id: string): Promise<boolean> {
         const ahora = new Date().toISOString();
         console.log("Hora actual:", ahora);
-        console.log(`🔎 Verificando penalización de usuario: ${usuario_id}`);
+        console.log(`Verificando penalización de usuario: ${usuario_id}`);
 
         const { data, error } = await supabase
             .from("Penalizacion")
             .select("*")
             .eq("usuario_id", usuario_id)
             .eq("estado_penalizacion", true)
-            .gt("fecha_final", ahora) // ← Aquí está la parte importante
+            .gt("fecha_final", ahora)
             .limit(1);
 
         console.log("Penalizaciones encontradas:", data);

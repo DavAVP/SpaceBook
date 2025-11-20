@@ -6,12 +6,11 @@ const app = express()
 const path = require('path')
 
 app.use(cors({
-    origin: 'http://localhost:4173', // Cambia esto al puerto donde estés corriendo tu frontend
+    origin: 'http://localhost:4173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
 
-// middlewares - configurar funciones que procesan rutas
 app.use(morgan('dev'))
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())

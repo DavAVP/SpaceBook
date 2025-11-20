@@ -1,7 +1,6 @@
 import { supabase } from "../api/supabase.config";
 import type { IHorarioDisponible } from "../interfaces/Horario_disponible";
 
-
 export const HoraDisponibleService = {
     //Crear notificacion
     async crearHoraDisponible(horaDisponible: IHorarioDisponible){
@@ -33,7 +32,6 @@ export const HoraDisponibleService = {
         return data as IHorarioDisponible
     },
 
-
     //Actualizar horario 
     async ActualizarHorario(id_horario: string, horarioDisponible: Partial<IHorarioDisponible>){
         const {data, error} = await supabase.from('HorarioDisponible').update(horarioDisponible).eq('id_horario', id_horario).select().single()
@@ -53,8 +51,6 @@ export const HoraDisponibleService = {
         }
         return true
     }
-
-
 }
 
 

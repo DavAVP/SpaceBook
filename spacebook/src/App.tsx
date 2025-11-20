@@ -32,7 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
 
 const App: React.FC = () => {
   const location = useLocation();
-  const { user } = useUser();   // ✔️ AHORA SÍ DENTRO DEL COMPONENTE
+  const { user } = useUser();
 
   const rutassinNavbar = ['/', '/register'];
   const mostrarNavbar = !rutassinNavbar.includes(location.pathname);
@@ -41,7 +41,7 @@ const App: React.FC = () => {
     if (user) {
       Suscripcion({
         id: user.id,
-        is_admin: !!user.is_admin, // <-- forzamos boolean
+        is_admin: !!user.is_admin,
       })
         .then(() => console.log("Suscripción lista", user.is_admin ? "(admin)" : "(cliente)"))
         .catch(err => console.error('Error al suscribirse:', err));

@@ -86,7 +86,6 @@ const Navbar = () => {
           />
         </div>
 
-        {/* Usuario y menú */}
         {user ? (
           <div className="navbar-user">
             {/* Badge de rol */}
@@ -101,7 +100,6 @@ const Navbar = () => {
               <span>{user.is_admin ? 'Admin' : 'Cliente'}</span>
             </div>
 
-            {/* Menú de usuario */}
             <div 
               className="user-menu-trigger"
               onClick={() => setShowUserMenu(!showUserMenu)}
@@ -112,7 +110,6 @@ const Navbar = () => {
               <span className="user-name">{user.nombre || 'Usuario'}</span>
             </div>
 
-            {/* Dropdown del menú */}
             {showUserMenu && (
               <div className="user-dropdown">
                 <div className="dropdown-header">
@@ -122,7 +119,6 @@ const Navbar = () => {
                 
                 <div className="dropdown-divider"></div>
 
-                {/* Opciones según el rol */}
                 {user.is_admin ? (
                   <>
                     <button 

@@ -66,7 +66,7 @@ const Reservar: React.FC = () => {
     const penalizado = await PenalizacionService.usuarioEstaPenalizado(user.id);
     console.log("¿Penalizado?:", penalizado);
     if (penalizado) {
-      toast.error("⛔ No puedes realizar reservas mientras estés penalizado!");
+      toast.error("No puedes realizar reservas mientras estés penalizado!");
       return;
     }
 
@@ -91,12 +91,14 @@ const Reservar: React.FC = () => {
       const nuevaReserva = await ReservaService.crearReserva(reservaPayload);
       if (!nuevaReserva) throw new Error("No se pudo crear la reserva");
 
+      // notificacion
       await fetch('http://localhost:8080/new-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: `Tienes una reserva pendiente para ${espacio.nombre_lugar}. ¡Confírmala!` })
       });
 
+      // guardamos notificacion en el supabase
       await NotificacionServices.crearNotificacion({
         id_notificacion: crypto.randomUUID(),
         usuario_id: user.id,
@@ -151,7 +153,7 @@ const Reservar: React.FC = () => {
         <ul className="horarios-list">
           {horarios.map((horario) => (
             <li key={horario.id_horario}>
-              <p>🗓️ {horario.dia_semana} — ⏰ {horario.horario_apertura} a {horario.horario_cierre}</p>
+              <p>{horario.dia_semana} —{horario.horario_apertura} a {horario.horario_cierre}</p>
               <label>
                 <input
                   type="radio"
