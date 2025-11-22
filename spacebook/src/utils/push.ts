@@ -7,24 +7,40 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export async function Suscripcion(user?: {id: string, is_admin: boolean}) {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
+        
+        const ApiKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+        if(!ApiKey){
+            throw new Error("error")
+            return
+        }
+        
         const register = await navigator.serviceWorker.ready;
         const suscripcion = await register.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(
-                (import.meta.env.VITE_VAPID_PUBLIC_KEY)
-            )
+            applicationServerKey: urlBase64ToUint8Array(ApiKey)
         });
 
-        await fetch('http://localhost:8080/subscription', {
+        const payloadJson = suscripcion.toJSON();
+        if(!payloadJson?.endpoint || !payloadJson?.keys?.p256dh){
+            console.log('Suscripcion invalida, no se envian al backend')
+            return;
+        }
+        
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {     
             method: 'POST',
             body: JSON.stringify({
-                ...suscripcion.toJSON(),
+                ...payloadJson,
                 userId: user?.id || null,
                 role: user?.is_admin ? 'admin' : 'cliente'
             }),
             headers: {'content-type': 'application/json'}
         });
 
+        if (!res.ok) {
+            const text = await res.text();
+            console.error("Error al guardar la suscripción:", text);
+            return;
+        }
         console.log('Usuario suscrito correctamente');
     } else {
         console.log('Push notificacion no soporta');

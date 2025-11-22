@@ -107,7 +107,7 @@ const Reservar: React.FC = () => {
       const reservaPayload = {
         usuario_id: user.id,
         espacio_id: espacio.id_espacio,
-        horario_id: horarioDelDia.id_horario, // Usar el ID del horario existente
+        horario_id: horarioDelDia.id_horario,
         hora_inicio: horaInicio,
         hora_fin: horaFin,
         estado: "pendiente",
@@ -117,12 +117,25 @@ const Reservar: React.FC = () => {
       const nuevaReserva = await ReservaService.crearReserva(reservaPayload);
       if (!nuevaReserva) throw new Error("No se pudo crear la reserva");
 
+      const API_URL = import.meta.env.VITE_API_URL;
       // Notificación push
-      await fetch('http://localhost:8080/new-message', {
+      await fetch(`${API_URL}/new-message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          message: `Tienes una reserva pendiente para ${espacio.nombre_lugar} el ${diaSeleccionado} de ${horaInicio} a ${horaFin}. ¡Confírmala!` 
+          message: `Tienes una reserva pendiente para ${espacio.nombre_lugar} el ${diaSeleccionado} de ${horaInicio} a ${horaFin}. ¡Confírmala!`,
+          userId: user.id,
+          role: 'cliente',
+          title: 'Nueva Reserva' 
+        })
+      });
+
+      await fetch(`${API_URL}/new-reservation-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `El usuario ${user.id} reservó el espacio ${espacio.nombre_lugar}.`,
+          title: 'Nueva Reserva Realizada'
         })
       });
 

@@ -49,6 +49,7 @@ const Penalizacion: React.FC = () => {
 
       const ahora = new Date();
       const reservasPendientes = data.filter((r) => r.estado === "pendiente");
+      const API_URL = import.meta.env.VITE_API_URL;
 
       for (const reserva of reservasPendientes) {
         const fechaReserva = new Date(reserva.fecha_reserva);
@@ -57,7 +58,7 @@ const Penalizacion: React.FC = () => {
         if (diferencia > TIEMPO_LIMITE) {
           console.log(`Reserva ${reserva.id_reserva} ha superado el límite`);
           // Notificar al admin
-          await fetch("http://localhost:8080/new-penalization-admin", {
+          await fetch(`${API_URL}/new-penalization-admin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -68,7 +69,7 @@ const Penalizacion: React.FC = () => {
             }),
           });
 
-          await fetch("http://localhost:8080/new-penalization-admin", {
+          await fetch(`${API_URL}/new-penalization-admin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -96,6 +97,7 @@ const Penalizacion: React.FC = () => {
   }, []);
 
   const handlePenalizar = async (reserva: IReserva, espacio: IEspacio) => {
+    const API_URL = import.meta.env.VITE_API_URL;
     try {
     // Verificar si ya está penalizado
     const yaPenalizado = await PenalizacionService.usuarioEstaPenalizado(reserva.usuario_id);
@@ -106,7 +108,7 @@ const Penalizacion: React.FC = () => {
     
       const message = `Usted ha sido penalizado para ${espacio.nombre_lugar} ya que se venció el tiempo de confirmación.`;
 
-      await fetch("http://localhost:8080/new-message", {
+      await fetch(`${API_URL}/new-message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -141,7 +143,7 @@ const Penalizacion: React.FC = () => {
       if (!creada) {
         // Fallback backend (service key) si falla desde cliente
         try {
-          const resp = await fetch("http://localhost:8080/admin/penalizar", {
+          const resp = await fetch(`${API_URL}/admin/penalizar`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ usuario_id: reserva.usuario_id, minutos: 5 }),

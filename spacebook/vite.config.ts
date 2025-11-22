@@ -8,11 +8,9 @@ export default defineConfig({
     react(),
     VitePWA({
       strategies: 'injectManifest',
+      srcDir: ".",
+      filename: "servicesWorker.js",
       registerType: 'autoUpdate',
-      injectManifest:{
-        swSrc: 'public/sw.js',
-        swDest: 'public/sw.js',
-      },
       injectRegister: 'auto',
       manifest:{
         name: 'SpaceBook',
@@ -41,6 +39,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
-    css: true
+    css: true,
+    env: true,            
   }
 })
