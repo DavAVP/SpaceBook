@@ -14,6 +14,7 @@ import { useEffect } from 'react'
 import MisReservas from './pages/clients/components-clients/MisReservar'
 import Penalizacion from './pages/admin/components-admin/penalizacion'
 import { Suscripcion } from './utils/push'
+import HomeInvitado from './pages/homeInvitado'
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -34,7 +35,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const { user } = useUser();
 
-  const rutassinNavbar = ['/', '/register'];
+  const rutassinNavbar = ['/login', '/register', "/"];
   const mostrarNavbar = !rutassinNavbar.includes(location.pathname);
   
   useEffect(() => {
@@ -56,7 +57,8 @@ const App: React.FC = () => {
       {mostrarNavbar && <Navbar />}
 
       <Routes>
-        <Route path='/' element={<Login />} />
+        <Route path='/' element={<HomeInvitado />} />
+        <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
 
         <Route path='/reservar/:id' element={

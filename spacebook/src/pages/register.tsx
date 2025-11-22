@@ -10,6 +10,7 @@ export default function Register() {
     const [mensajeError, setMensajeError] = useState("");
     const [mensajeExito, setMensajeExito] = useState("");
 
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -69,7 +70,7 @@ export default function Register() {
                     <button>Registrarse</button>
                 </form>
                 <div className="helper">
-                    ¿Ya tienes cuenta? <a href="/">Inicia sesión</a>
+                    ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
                 </div>
             </div>
         </div>

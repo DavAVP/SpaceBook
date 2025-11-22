@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import "../styles/navbar.css";
@@ -59,14 +59,24 @@ const Navbar = () => {
   const handleLogout = async () => {
     await AuthService.supabase.auth.signOut();
     setUser(null);
-    navigate('/');
+    navigate('/login');
   };
+
+  const navegacionInicioAdmin = () => {  // Navegación dependiendo del rol definido para redireccionar al inicio adecuado
+    if (user?.is_admin) {
+      navigate('/admin');
+    }
+    
+    else {
+      navigate('/home');
+    }
+  }
 
   return (
     <nav className="navbar-custom">
       <div className="navbar-container">
         {/* Logo */}
-        <div className="navbar-logo" onClick={() => navigate('/')}>
+        <div className="navbar-logo" onClick={ navegacionInicioAdmin }>
           <h2>ReservaSpace</h2>
         </div>
 

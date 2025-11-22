@@ -8,12 +8,9 @@ interface Props {
 }
 
 export default function AgregarHorario({ idEspacio, onFinish }: Props) {
-    const [horaInicio, setHoraInicio] = useState("");
-    const [horaFin, setHoraFin] = useState("");
-    const [diaSemana, setSemana] = useState("");
+    const [diasSeleccionados, setDiasSeleccionados] = useState<string[]>([]);
     const [mensaje, setMensaje] = useState("");
     const [error, setError] = useState("");
-
 
     const ListaDiaSemana = [
       'lunes',
@@ -25,83 +22,88 @@ export default function AgregarHorario({ idEspacio, onFinish }: Props) {
       'domingo', 
     ];
 
-    const handleAddHorario = async (e: React.FormEvent) => {
+    const toggleDia = (dia: string) => {
+        setDiasSeleccionados(prev => 
+            prev.includes(dia) 
+                ? prev.filter(d => d !== dia) //esto hace que si el día ya está seleccionado, lo quita
+                : [...prev, dia] //si no está seleccionado, lo agrega
+        );
+    };
+
+    const handleAddHorarios = async (e: React.FormEvent) => {
         e.preventDefault();
         setMensaje("");
         setError("");
 
-        const horario = {
-            id_horario: crypto.randomUUID(),
-            espacio_id: idEspacio,
-            dia_semana: diaSemana,
-            horario_apertura: horaInicio,
-            horario_cierre: horaFin,
-            ocupado: false
-        };
+        //validacion para que no ponga menos de 1 dia
+        if (diasSeleccionados.length === 0) {
+            setError("Debes seleccionar al menos un día");
+            return;
+        }
 
-        const result = await HoraDisponibleService.crearHoraDisponible(horario);
+        try {
+            // Crear un horario disponible por cada día seleccionado
+            const promesas = diasSeleccionados.map(dia => {
+                const horario = {
+                    id_horario: crypto.randomUUID(), // Genera un ID único para el horario
+                    espacio_id: idEspacio, // Asigna el ID del espacio
+                    dia_semana: dia,
+                    horario_apertura: "00:00", // Ya no es relevante, se define todo el dia por defecto
+                    horario_cierre: "23:59",
+                    ocupado: false // Identifica si el horario está ocupado
+                };
+                return HoraDisponibleService.crearHoraDisponible(horario);
+            });
 
-        if (result) {
-            setMensaje("Horario agregado");
-            setSemana("");
-            setHoraInicio("");
-            setHoraFin("");
-        } else {
-            setError("No se pudo agregar el horario");
+            const resultados = await Promise.all(promesas);
+            
+            if (resultados.every(r => r)) {
+                setMensaje(`${diasSeleccionados.length} día(s) agregado(s) correctamente`);
+                setDiasSeleccionados([]);
+            } else {
+                setError("Algunos días no se pudieron agregar");
+            }
+        } catch (err) {
+            setError("Error al agregar los días disponibles");
+            console.error(err);
         }
     };
 
     return (
         <div className="mt-4 p-3 border rounded">
-            <h4>Agregar Horarios al Espacio</h4>
-        {mensaje && <div className="alert alert-success">{mensaje}</div>}
-        {error && <div className="alert alert-danger">{error}</div>}
-        <div className="row g-3" onSubmit={handleAddHorario}>
-            <div className="col-md-6">
-            <label>dia de la semana</label>
-              <select
-                className="form-control"
-                value={diaSemana}
-                onChange={(e) => setSemana(e.target.value)}
-                required
-              >
-                <option value="">Seleccione un día...</option>
-                {ListaDiaSemana.map((d) => (
-                  <option key={d} value={d}>
-                    {d.charAt(0).toUpperCase() + d.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-        <div className="col-md-6">
-          <label>Hora Inicio</label>
-          <input
-            type="time"
-            className="form-control"
-            value={horaInicio}
-            onChange={(e) => setHoraInicio(e.target.value)}
-            required
-          />
-        </div>
+            <h4>Configurar Días Disponibles del Espacio</h4>
+            <p className="text-muted">Selecciona los días en que este espacio estará disponible para reservas</p>
+            
+            {mensaje && <div className="alert alert-success">{mensaje}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
+            
+            <form onSubmit={handleAddHorarios}>
+                <div className="dias-container mb-3">
+                    {ListaDiaSemana.map((dia) => (
+                        <div key={dia} className="form-check">
+                            <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id={`dia-${dia}`}
+                                checked={diasSeleccionados.includes(dia)}
+                                onChange={() => toggleDia(dia)}
+                            />
+                            <label className="form-check-label" htmlFor={`dia-${dia}`}>
+                                {dia.charAt(0).toUpperCase() + dia.slice(1)}
+                            </label>
+                        </div>
+                    ))}
+                </div>
 
-        <div className="col-md-6">
-          <label>Hora Fin</label>
-          <input
-            type="time"
-            className="form-control"
-            value={horaFin}
-            onChange={(e) => setHoraFin(e.target.value)}
-            required
-          />
+                <div className="col-12 mt-3">
+                    <button type="submit" className="btn btn-primary">
+                        Guardar Días Disponibles
+                    </button>
+                    <button type="button" className="btn btn-secondary ms-2" onClick={onFinish}>
+                        Terminar
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div className="col-12 mt-3">
-          <button onClick={handleAddHorario} className="btn btn-primary">Agregar Horario</button>
-          <button type="button" className="btn btn-secondary ms-2" onClick={onFinish}>
-            Terminar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

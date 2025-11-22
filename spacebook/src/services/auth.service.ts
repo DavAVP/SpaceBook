@@ -29,7 +29,7 @@ export const AuthService = {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: 'http://localhost:5173/home'
+                    emailRedirectTo: 'http://localhost:4173/home'
                 }
             })
             if(error){
