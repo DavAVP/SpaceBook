@@ -1,54 +1,19 @@
-<<<<<<< HEAD
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: CI
-
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-=======
 name: Full CI (Frontend + Backend)
 
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
->>>>>>> 00a53ce480c5d5accbe3fbc8f5c6b5d37f046c81
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-<<<<<<< HEAD
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: npm
-
-      - name: Install frontend dependencies
-        run: npm install
-        working-directory: spacebook
-
-      - name: Build frontend
-        run: npm run build --if-present
-        working-directory: spacebook
-
-      - name: Test frontend
-        run: npm test --if-present
-        working-directory: spacebook
-=======
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
 
     steps:
       - name: Descargar repo
@@ -68,7 +33,9 @@ jobs:
         working-directory: ./backend
 
       - name: Test Backend
-        run: npm test
+        run: |
+          chmod +x node_modules/.bin/jest
+          npm test
         working-directory: ./backend
 
       - name: Instalar dependencias Frontend
@@ -82,4 +49,3 @@ jobs:
       - name: Test Frontend
         run: npm test --if-present
         working-directory: ./spacebook
->>>>>>> 00a53ce480c5d5accbe3fbc8f5c6b5d37f046c81

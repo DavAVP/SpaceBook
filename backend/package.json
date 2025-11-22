@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "npx jest",
+    "test:watch": "npx jest --watch",
+    "test:coverage": "npx jest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +19,7 @@
     "morgan": "^1.10.1",
     "web-push": "^3.6.7"
   },
+  
   "devDependencies": {
     "jest": "^30.2.0",
     "supertest": "^7.1.4"

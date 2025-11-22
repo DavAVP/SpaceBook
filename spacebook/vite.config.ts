@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -36,10 +36,15 @@ export default defineConfig({
       }
     })
   ],
+  // @ts-expect-error - Vitest config is valid but TypeScript doesn't recognize it
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
-    css: true,
+    css: true
   },
+  define: {
+    'import.meta.env.VITE_SUPABASE_URL': '"https://test.supabase.co"',
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': '"test-key"'
+  }
 })

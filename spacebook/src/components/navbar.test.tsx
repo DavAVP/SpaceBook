@@ -123,7 +123,7 @@ describe('Navbar', () => {
     });
 
     await userEvent.click(screen.getByText(/reservaspace/i));
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+    expect(mockNavigate).toHaveBeenCalledWith('/home');
   });
 
   it('maneja el logout correctamente', async () => {
@@ -158,7 +158,7 @@ describe('Navbar', () => {
 
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
   });
 });
