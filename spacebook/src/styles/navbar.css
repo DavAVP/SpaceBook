@@ -285,3 +285,16 @@
     display: none;
   }
 }
+/* Botón de notificaciones */
+.dropdown-item.notification-toggle {
+  color: #ff9800;
+  font-weight: 500;
+}
+
+.dropdown-item.notification-toggle:hover {
+  background-color: #fff3e0;
+}
+
+.dropdown-item.notification-toggle svg {
+  stroke: #ff9800;
+}

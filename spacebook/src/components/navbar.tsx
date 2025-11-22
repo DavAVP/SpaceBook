@@ -1,4 +1,4 @@
-  import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import "../styles/navbar.css";
@@ -8,17 +8,21 @@ const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   // Verificar sesión al cargar
   useEffect(() => {
     checkUser();
+    checkNotificationStatus();
     
     // Escuchar cambios de autenticación
     const { data: authListener } = AuthService.supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         checkUser();
+        checkNotificationStatus();
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setNotificationsEnabled(false);
       }
     });
 
@@ -49,6 +53,41 @@ const Navbar = () => {
     }
   };
 
+  const checkNotificationStatus = async () => {
+    const { data } = await AuthService.supabase.auth.getSession();
+    if (data.session) {
+      const userId = data.session.user.id;
+      const { data: profile } = await AuthService.supabase
+        .from("profiles")
+        .select("notificaciones_activas")
+        .eq("id", userId)
+        .single();
+
+      if (profile) {
+        setNotificationsEnabled(profile.notificaciones_activas || false);
+      }
+    }
+  };
+
+  const toggleNotifications = async () => {
+    if (!user) return;
+
+    const newStatus = !notificationsEnabled;
+
+    const { error } = await AuthService.supabase
+      .from("profiles")
+      .update({ notificaciones_activas: newStatus })
+      .eq("id", user.id);
+
+    if (!error) {
+      setNotificationsEnabled(newStatus);
+      alert(newStatus ? '✅ Notificaciones activadas' : '🔕 Notificaciones desactivadas');
+    } else {
+      console.error('Error al actualizar notificaciones:', error);
+      alert('❌ Error al actualizar las notificaciones');
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -62,12 +101,10 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const navegacionInicioAdmin = () => {  // Navegación dependiendo del rol definido para redireccionar al inicio adecuado
+  const navegacionInicioAdmin = () => {
     if (user?.is_admin) {
       navigate('/admin');
-    }
-    
-    else {
+    } else {
       navigate('/home');
     }
   }
@@ -76,7 +113,7 @@ const Navbar = () => {
     <nav className="navbar-custom">
       <div className="navbar-container">
         {/* Logo */}
-        <div className="navbar-logo" onClick={ navegacionInicioAdmin }>
+        <div className="navbar-logo" onClick={navegacionInicioAdmin}>
           <h2>ReservaSpace</h2>
         </div>
 
@@ -131,6 +168,7 @@ const Navbar = () => {
 
                 {user.is_admin ? (
                   <>
+                    {/* MENÚ ADMIN - Solo opciones de administración */}
                     <button 
                       className="dropdown-item"
                       onClick={() => {
@@ -158,35 +196,63 @@ const Navbar = () => {
                     </button>
                   </>
                 ) : (
-                  <button 
-                    className="dropdown-item"
-                    onClick={() => {
-                      navigate('/mis-reservas');
-                      setShowUserMenu(false);
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    Mis Reservas
-                  </button>
-                )}
+                  <>
+                    {/* MENÚ CLIENTE - Con Mis Reservas, Ver Espacios y Notificaciones */}
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/mis-reservas');
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
+                      Mis Reservas
+                    </button>
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/home');
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                      </svg>
+                      Ver Espacios
+                    </button>
 
-                <div className=''>
-                  <button 
-                    className="dropdown-item"
-                    onClick={() => {
-                      navigate('/home');
-                      setShowUserMenu(false);
-                    }}>
-                    
-                    Ver Espacios
-    
-                  </button>
-                </div>
+                    <div className="dropdown-divider"></div>
+
+                    {/* Botón de Notificaciones - SOLO PARA CLIENTES */}
+                    <button 
+                      className="dropdown-item notification-toggle"
+                      onClick={toggleNotifications}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        {notificationsEnabled ? (
+                          <>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                          </>
+                        ) : (
+                          <>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                          </>
+                        )}
+                      </svg>
+                      <span>
+                        {notificationsEnabled ? 'Desactivar Notificaciones' : 'Activar Notificaciones'}
+                      </span>
+                    </button>
+                  </>
+                )}
 
                 <div className="dropdown-divider"></div>
 
