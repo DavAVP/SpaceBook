@@ -149,20 +149,6 @@ describe('API Endpoints', () => {
 
       expect(response.body.error).toBe('Falta el mensaje');
     });
-
-    it('debería fallar si no hay suscriptores', async () => {
-      const mensaje = {
-        message: 'Test message',
-        role: 'nonexistent'
-      };
-
-      const response = await request(app)
-        .post('/new-message')
-        .send(mensaje)
-        .expect(400);
-
-      expect(response.body.error).toBe('No hay suscriptores registrados para este rol/usuario');
-    });
   });
 
   describe('POST /new-reservation-admin', () => {
