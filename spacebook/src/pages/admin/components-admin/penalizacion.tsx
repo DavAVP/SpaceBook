@@ -16,8 +16,6 @@ const Penalizacion: React.FC = () => {
 
   // Tiempo máximo para confirmar (10s para pruebas)
   const TIEMPO_LIMITE = 10000;
-
-  // Cargar reservas y espacios
   const fetchReservas = async () => {
     try {
       const data = await ReservaService.ObtenerReserva();
@@ -64,6 +62,17 @@ const Penalizacion: React.FC = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               message: `El usuario ${reserva.usuario_id} ha superado el tiempo límite de confirmación.`,
+              serId: reserva.usuario_id,
+              role: "cliente",
+              title: "Reserva Vencida",
+            }),
+          });
+
+          await fetch("http://localhost:8080/new-penalization-admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: `El usuario ${reserva.usuario_id} no confirmó la reserva a tiempo.`,
             }),
           });
         }
@@ -100,7 +109,12 @@ const Penalizacion: React.FC = () => {
       await fetch("http://localhost:8080/new-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          userId: reserva.usuario_id,
+          role: 'cliente',
+          title: 'Penalización'
+        }),
       });
 
       await NotificacionServices.crearNotificacion({
@@ -150,7 +164,7 @@ const Penalizacion: React.FC = () => {
         toast.success("Penalización creada (directa)");
       }
 
-      // Refrescar listado de penalizaciones si se desea mostrar en UI
+      // Refrescar listado de penalizaciones
       try {
         const nuevas = await PenalizacionService.ObtenerPenalizaciones();
         if (Array.isArray(nuevas)) setPenalizaciones(nuevas);
