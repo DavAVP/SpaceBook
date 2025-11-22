@@ -3,7 +3,6 @@ console.log('Service Worker cargado');
 
 precacheAndRoute(self.__WB_MANIFEST || []);
 
-
 self.addEventListener('push', event => {
   console.log('[Service Worker] Push recibido', event.data?.text());
   let data = {};
