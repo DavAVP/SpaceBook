@@ -35,5 +35,16 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  // @ts-expect-error - Vitest config is valid but TypeScript doesn't recognize it
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    css: true
+  },
+  define: {
+    'import.meta.env.VITE_SUPABASE_URL': '"https://test.supabase.co"',
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': '"test-key"'
+  }
 })
