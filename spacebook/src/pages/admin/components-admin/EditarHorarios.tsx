@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { HoraDisponibleService } from "../../../services/horaDisponible.service";
-import AgregarHorario from "./horarioDisponible";
 import "../../../styles/editarHorarios.css";
 
 interface Props {
@@ -8,14 +7,27 @@ interface Props {
 }
 
 export default function EditarHorarios({ idEspacio }: Props) {
-  const [horarios, setHorarios] = useState<any[]>([]);
+  const [diasActivos, setDiasActivos] = useState<string[]>([]);
+  const [horariosOriginales, setHorariosOriginales] = useState<any[]>([]);
   const [mensaje, setMensaje] = useState("");
-  const [mostrarForm, setMostrarForm] = useState(false);
+  const [cargando, setCargando] = useState(false);
+
+  const ListaDiaSemana = [
+    'lunes',
+    'martes',
+    'miercoles',
+    'jueves',
+    'viernes',
+    'sabado',
+    'domingo', 
+  ];
 
   const cargarHorarios = async () => {
     const data = await HoraDisponibleService.ObtenerHoraDisponibles();
     if (data) {
-      setHorarios(data.filter(h => h.espacio_id === idEspacio));
+      const horariosEspacio = data.filter(h => h.espacio_id === idEspacio);
+      setHorariosOriginales(horariosEspacio);
+      setDiasActivos(horariosEspacio.map(h => h.dia_semana));
     }
   };
 
@@ -23,107 +35,98 @@ export default function EditarHorarios({ idEspacio }: Props) {
     cargarHorarios();
   }, [idEspacio]);
 
-  const actualizarHorario = async (horario: any) => {
-    const actualizado = await HoraDisponibleService.ActualizarHorario(horario.id_horario, {
-      dia_semana: horario.dia_semana,
-      horario_apertura: horario.horario_apertura,
-      horario_cierre: horario.horario_cierre
-    });
-
-    if (actualizado) {
-      setMensaje("Horario actualizado");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
-
-  const eliminarHorario = async (id_horario: string) => {
-    const confirmar = confirm("¿Eliminar este horario?");
-    if (!confirmar) return;
-    
-    const eliminado = await HoraDisponibleService.EliminarHorario(id_horario);
-    if (eliminado) {
-      setHorarios(prev => prev.filter(h => h.id_horario !== id_horario));
-      setMensaje("Horario eliminado");
-      setTimeout(() => setMensaje(""), 2000);
-    }
-  };
-
-  const cambiarValor = (id_horario: string, field: string, value: string) => {
-    setHorarios(prev =>
-      prev.map(h => h.id_horario === id_horario ? { ...h, [field]: value } : h)
+  const toggleDia = (dia: string) => {
+    setDiasActivos(prev => 
+      prev.includes(dia) 
+        ? prev.filter(d => d !== dia)
+        : [...prev, dia]
     );
   };
 
-  const handleFinishAgregar = () => {
-    setMostrarForm(false);
-    cargarHorarios();
+  const guardarCambios = async () => {
+    setCargando(true);
+    setMensaje("");
+
+    try {
+      // Días que estaban pero ya no están = ELIMINAR
+      const diasAEliminar = horariosOriginales.filter(
+        h => !diasActivos.includes(h.dia_semana)
+      );
+
+      // Días que están ahora pero no estaban antes = AGREGAR
+      const diasOriginales = horariosOriginales.map(h => h.dia_semana);
+      const diasAAgregar = diasActivos.filter(dia => !diasOriginales.includes(dia));
+
+      // Eliminar días
+      for (const horario of diasAEliminar) {
+        await HoraDisponibleService.EliminarHorario(horario.id_horario);
+      }
+
+      // Agregar nuevos días
+      for (const dia of diasAAgregar) {
+        const nuevoHorario = {
+          id_horario: crypto.randomUUID(),
+          espacio_id: idEspacio,
+          dia_semana: dia,
+          horario_apertura: "00:00",
+          horario_cierre: "23:59",
+          ocupado: false
+        };
+        await HoraDisponibleService.crearHoraDisponible(nuevoHorario);
+      }
+
+      setMensaje("Cambios guardados correctamente");
+      await cargarHorarios();
+      
+      setTimeout(() => setMensaje(""), 3000);
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      setMensaje("Error al guardar los cambios");
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
     <div className="editar-horarios-container">
-      <h4>Editar Horarios</h4>
-      {mensaje && <div className="alert alert-success">{mensaje}</div>}
+      <h4>Editar Días Disponibles</h4>
+      <p className="text-muted">Selecciona los días en que este espacio estará disponible para reservas</p>
+      
+      {mensaje && (
+        <div className={`alert ${mensaje.includes("Error") ? "alert-danger" : "alert-success"}`}>
+          {mensaje}
+        </div>
+      )}
+
+      <div className="dias-container mb-4">
+        {ListaDiaSemana.map((dia) => (
+          <div key={dia} className="form-check">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`dia-${dia}`}
+              checked={diasActivos.includes(dia)}
+              onChange={() => toggleDia(dia)}
+              disabled={cargando}
+            />
+            <label className="form-check-label" htmlFor={`dia-${dia}`}>
+              {dia.charAt(0).toUpperCase() + dia.slice(1)}
+            </label>
+          </div>
+        ))}
+      </div>
 
       <button 
-        className="btn-toggle-form"
-        onClick={() => setMostrarForm(!mostrarForm)}
+        className="btn btn-primary"
+        onClick={guardarCambios}
+        disabled={cargando || diasActivos.length === 0}
       >
-        {mostrarForm ? "Cerrar" : "Agregar Horario"}
+        {cargando ? "Guardando..." : "Guardar dias disponibles"}
       </button>
 
-      {mostrarForm && (
-        <AgregarHorario 
-          idEspacio={idEspacio} 
-          onFinish={handleFinishAgregar}
-        />
+      {diasActivos.length === 0 && (
+        <p className="text-warning mt-2">⚠️ Debes seleccionar al menos un día</p>
       )}
-
-      {horarios.length === 0 && (<div className = "no-horarios">
-        No hay horarios registrados.
-        </div>
-      )}
-
-      {horarios.map(h => (
-        <div key={h.id_horario} className="horario-card">
-          <label>Día</label>
-          <input
-            value={h.dia_semana}
-            onChange={(e) => cambiarValor(h.id_horario, "dia_semana", e.target.value)}
-            className="form-control mb-2"
-          />
-
-          <label>Hora inicio</label>
-          <input
-            type="time"
-            value={h.horario_apertura}
-            onChange={(e) => cambiarValor(h.id_horario, "horario_apertura", e.target.value)}
-            className="form-control mb-2"
-          />
-
-          <label>Hora fin</label>
-          <input
-            type="time"
-            value={h.horario_cierre}
-            onChange={(e) => cambiarValor(h.id_horario, "horario_cierre", e.target.value)}
-            className="form-control mb-3"
-          />
-          <div className = "horario-card-buttons">
-            <button
-              className="btn btn-success btn-sm me-2"
-              onClick={() => actualizarHorario(h)}
-            >
-              Guardar cambios
-            </button>
-
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={() => eliminarHorario(h.id_horario)}
-            >
-              Eliminar
-            </button>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

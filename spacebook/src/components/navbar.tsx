@@ -175,6 +175,19 @@ const Navbar = () => {
                   </button>
                 )}
 
+                <div className=''>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      navigate('/home');
+                      setShowUserMenu(false);
+                    }}>
+                    
+                    Ver Espacios
+    
+                  </button>
+                </div>
+
                 <div className="dropdown-divider"></div>
 
                 <button 
