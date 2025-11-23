@@ -1,4 +1,4 @@
-name: Full CI (Frontend + Backend)
+name: Full CI/CD (Frontend + Backend)
 
 on:
   push:
@@ -48,3 +48,26 @@ jobs:
       - name: Test Frontend
         run: npm test --if-present
         working-directory: ./spacebook
+
+  deploy_frontend:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy to Vercel
+        working-directory: ./spacebook
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel --prod --token $VERCEL_TOKEN --yes
