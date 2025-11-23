@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
-import NotificationToggle from '../components/notificaciones';
 import "../styles/navbar.css";
 
 const Navbar = () => {
@@ -9,27 +8,34 @@ const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
+  // Verificar sesión al cargar
   useEffect(() => {
     checkUser();
-
+    checkNotificationStatus();
+    
+    // Escuchar cambios de autenticación
     const { data: authListener } = AuthService.supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         checkUser();
-      } else if (event === "SIGNED_OUT") {
+        checkNotificationStatus();
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setNotificationsEnabled(false);
       }
     });
 
-    return () => authListener?.subscription?.unsubscribe();
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const checkUser = async () => {
     const { data } = await AuthService.supabase.auth.getSession();
-
+    
     if (data.session) {
       const userId = data.session.user.id;
-
       const { data: profile } = await AuthService.supabase
         .from("profiles")
         .select("*")
@@ -39,11 +45,46 @@ const Navbar = () => {
       if (profile) {
         setUser({
           id: userId,
-          nombre: profile.nombre || data.session.user.email?.split("@")[0],
-          email: data.session.user.email || "",
+          nombre: profile.nombre || data.session.user.email?.split('@')[0] || 'Usuario',
+          email: data.session.user.email || '',
           is_admin: profile.is_admin || false
         });
       }
+    }
+  };
+
+  const checkNotificationStatus = async () => {
+    const { data } = await AuthService.supabase.auth.getSession();
+    if (data.session) {
+      const userId = data.session.user.id;
+      const { data: profile } = await AuthService.supabase
+        .from("profiles")
+        .select("notificaciones_activas")
+        .eq("id", userId)
+        .single();
+
+      if (profile) {
+        setNotificationsEnabled(profile.notificaciones_activas || false);
+      }
+    }
+  };
+
+  const toggleNotifications = async () => {
+    if (!user) return;
+
+    const newStatus = !notificationsEnabled;
+
+    const { error } = await AuthService.supabase
+      .from("profiles")
+      .update({ notificaciones_activas: newStatus })
+      .eq("id", user.id);
+
+    if (!error) {
+      setNotificationsEnabled(newStatus);
+      alert(newStatus ? '✅ Notificaciones activadas' : '🔕 Notificaciones desactivadas');
+    } else {
+      console.error('Error al actualizar notificaciones:', error);
+      alert('❌ Error al actualizar las notificaciones');
     }
   };
 
@@ -57,24 +98,28 @@ const Navbar = () => {
   const handleLogout = async () => {
     await AuthService.supabase.auth.signOut();
     setUser(null);
-    navigate("/login");
+    navigate('/login');
   };
 
   const navegacionInicioAdmin = () => {
-    if (user?.is_admin) navigate("/admin");
-    else navigate("/home");
-  };
+    if (user?.is_admin) {
+      navigate('/admin');
+    } else {
+      navigate('/home');
+    }
+  }
 
   return (
     <nav className="navbar-custom">
       <div className="navbar-container">
-
+        {/* Logo */}
         <div className="navbar-logo" onClick={navegacionInicioAdmin}>
           <h2>ReservaSpace</h2>
         </div>
 
+        {/* Buscador */}
         <div className="navbar-search">
-          <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24">
+          <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.35-4.35"></path>
           </svg>
@@ -90,73 +135,177 @@ const Navbar = () => {
 
         {user ? (
           <div className="navbar-user">
-
+            {/* Badge de rol */}
             <div className={`user-badge ${user.is_admin ? 'admin' : 'cliente'}`}>
-              {user.is_admin ? "Admin" : "Cliente"}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                {user.is_admin ? (
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                ) : (
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                )}
+              </svg>
+              <span>{user.is_admin ? 'Admin' : 'Cliente'}</span>
             </div>
 
-            <div className="user-menu-trigger" onClick={() => setShowUserMenu(!showUserMenu)}>
+            <div 
+              className="user-menu-trigger"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+            >
               <div className="user-avatar">
-                {user.nombre?.charAt(0).toUpperCase()}
+                {user.nombre?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <span className="user-name">{user.nombre}</span>
+              <span className="user-name">{user.nombre || 'Usuario'}</span>
             </div>
 
             {showUserMenu && (
               <div className="user-dropdown">
-
                 <div className="dropdown-header">
                   <p className="dropdown-name">{user.nombre}</p>
                   <p className="dropdown-email">{user.email}</p>
                 </div>
-
+                
                 <div className="dropdown-divider"></div>
 
                 {user.is_admin ? (
                   <>
-                    <button className="dropdown-item" onClick={() => navigate("/admin")}>
+                    {/* MENÚ ADMIN - Solo opciones de administración */}
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/admin');
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      </svg>
                       Panel de Admin
                     </button>
-
-                    <button className="dropdown-item" onClick={() => navigate("/admin/penalizaciones")}>
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/admin/penalizaciones');
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                      </svg>
                       Confirmaciones Pendientes
                     </button>
-
                     <div className="dropdown-divider"></div>
 
-                    <NotificationToggle userId={user.id} is_admin={user.is_admin} />
+                    {/* Botón de Notificaciones - PARA ADMIN TAMBIÉN */}
+                    <button 
+                      className="dropdown-item notification-toggle"
+                      onClick={toggleNotifications}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        {notificationsEnabled ? (
+                          <>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                          </>
+                        ) : (
+                          <>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                          </>
+                        )}
+                      </svg>
+                      <span>
+                        {notificationsEnabled ? 'Desactivar Notificaciones' : 'Activar Notificaciones'}
+                      </span>
+                    </button>
                   </>
                 ) : (
                   <>
-                    <button className="dropdown-item" onClick={() => navigate("/mis-reservas")}>
+                    {/* MENÚ CLIENTE - Con Mis Reservas, Ver Espacios y Notificaciones */}
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/mis-reservas');
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
                       Mis Reservas
                     </button>
-
-                    <button className="dropdown-item" onClick={() => navigate("/home")}>
+                    <button 
+                      className="dropdown-item"
+                      onClick={() => {
+                        navigate('/home');
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                      </svg>
                       Ver Espacios
                     </button>
 
                     <div className="dropdown-divider"></div>
 
-                    <NotificationToggle userId={user.id} is_admin={user.is_admin} />
+                    {/* Botón de Notificaciones - SOLO PARA CLIENTES */}
+                    <button 
+                      className="dropdown-item notification-toggle"
+                      onClick={toggleNotifications}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        {notificationsEnabled ? (
+                          <>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                          </>
+                        ) : (
+                          <>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <line x1="2" y1="2" x2="22" y2="22"></line>
+                          </>
+                        )}
+                      </svg>
+                      <span>
+                        {notificationsEnabled ? 'Desactivar Notificaciones' : 'Activar Notificaciones'}
+                      </span>
+                    </button>
                   </>
                 )}
 
                 <div className="dropdown-divider"></div>
 
-                <button className="dropdown-item logout" onClick={handleLogout}>
+                <button 
+                  className="dropdown-item logout"
+                  onClick={handleLogout}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
                   Cerrar Sesión
                 </button>
-
               </div>
             )}
           </div>
         ) : (
           <div className="navbar-actions">
-            <button className="btn-login" onClick={() => navigate("/login")}>
+            <button 
+              className="btn-login"
+              onClick={() => navigate('/login')}
+            >
               Iniciar Sesión
             </button>
-            <button className="btn-register" onClick={() => navigate("/register")}>
+            <button 
+              className="btn-register"
+              onClick={() => navigate('/register')}
+            >
               Registrarse
             </button>
           </div>
