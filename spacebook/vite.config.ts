@@ -8,6 +8,10 @@ export default defineConfig({
     react(),
     VitePWA({
       strategies: 'injectManifest',
+      injectManifest: {
+        swSrc: 'public/sw.js',
+        swDest: 'dist/sw.js', // o simplemente elimina swDest para usar el valor por defecto
+      },
       srcDir: ".",
       filename: "servicesWorker.js",
       registerType: 'autoUpdate',
