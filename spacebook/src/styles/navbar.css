@@ -1,8 +1,8 @@
 /* Navbar principal */
 .navbar-custom {
-  background: linear-gradient(135deg, #4a2376 0%, #5b2b8f 100%);
+  background: linear-gradient(135deg, var(--nav-start), var(--nav-end));
   padding: 15px 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--shadow);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -24,7 +24,7 @@
 }
 
 .navbar-logo h2 {
-  color: #ffffff;
+  color: var(--on-primary);
   font-family: 'Poppins', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -89,13 +89,13 @@
 }
 
 .user-badge.admin {
-  background-color: #ff9800;
-  color: #ffffff;
+  background-color: var(--accent);
+  color: var(--on-primary);
 }
 
 .user-badge.cliente {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.16);
+  color: var(--on-primary);
 }
 
 .user-badge svg {
@@ -117,22 +117,48 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Botón de notificaciones rápido (visible para admins) */
+.notify-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  margin-right: 6px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--on-primary);
+  cursor: pointer;
+  transition: background-color .12s ease, transform .08s ease;
+}
+.notify-icon svg { stroke: currentColor; }
+.notify-icon.enabled {
+  background: rgba(255,255,255,0.08);
+  color: var(--on-primary);
+}
+.notify-icon.disabled {
+  background: transparent;
+  color: rgba(255,255,255,0.9);
+}
+.notify-icon:hover { transform: translateY(-1px); background-color: rgba(255,255,255,0.12); }
+
 .user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff9800 0%, #ff6f00 100%);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--on-primary);
   font-weight: 700;
   font-size: 1.1rem;
   font-family: 'Poppins', sans-serif;
 }
 
 .user-name {
-  color: #ffffff;
+  color: var(--on-primary);
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
   max-width: 150px;
@@ -146,9 +172,9 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   min-width: 250px;
   overflow: hidden;
   animation: dropdownFade 0.2s ease;
@@ -167,11 +193,11 @@
 
 .dropdown-header {
   padding: 15px;
-  background: linear-gradient(135deg, #5b2b8f 0%, #4a2376 100%);
+  background: linear-gradient(135deg, var(--nav-start), var(--nav-end));
 }
 
 .dropdown-name {
-  color: #ffffff;
+  color: var(--on-primary);
   font-weight: 600;
   font-size: 1rem;
   margin: 0 0 5px 0;
@@ -179,7 +205,7 @@
 }
 
 .dropdown-email {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.85rem;
   margin: 0;
   font-family: 'Poppins', sans-serif;
@@ -202,13 +228,13 @@
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   font-size: 0.95rem;
-  color: #333333;
-  transition: background-color 0.2s ease;
+  color: var(--text-dark);
+  transition: background-color 0.15s ease;
   text-align: left;
 }
 
 .dropdown-item:hover {
-  background-color: #f5f5f5;
+  background-color: rgba(0,0,0,0.03);
 }
 
 .dropdown-item.logout {
@@ -237,26 +263,26 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-login {
   background-color: transparent;
-  color: #ffffff;
-  border: 2px solid #ffffff;
+  color: var(--on-primary);
+  border: 2px solid rgba(255,255,255,0.14);
 }
 
 .btn-login:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 .btn-register {
-  background-color: #ff9800;
-  color: #ffffff;
+  background-color: var(--accent);
+  color: var(--on-primary);
 }
 
 .btn-register:hover {
-  background-color: #e68900;
+  background-color: color-mix(in srgb, var(--accent) 85%, black 15%);
   transform: translateY(-2px);
 }
 
@@ -287,14 +313,14 @@
 }
 /* Botón de notificaciones */
 .dropdown-item.notification-toggle {
-  color: #ff9800;
-  font-weight: 500;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .dropdown-item.notification-toggle:hover {
-  background-color: #fff3e0;
+  background-color: rgba(255,138,75,0.08);
 }
 
 .dropdown-item.notification-toggle svg {
-  stroke: #ff9800;
+  stroke: var(--accent);
 }

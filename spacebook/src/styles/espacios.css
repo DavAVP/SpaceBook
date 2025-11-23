@@ -9,7 +9,7 @@
 .container-mt-5 h2 {
     font-family: 'Poppins', sans-serif;
     font-size: 2.2rem;
-    color: #ffffff;
+    color: var(--on-primary);
     text-align: center;
     margin-bottom: 30px;
     font-weight: 600;
@@ -49,10 +49,10 @@
 
 /* Formulario principal */
 .space-form {
-    background: linear-gradient(135deg, #4a2376 0%, #5b2b8f 100%);
+    background: linear-gradient(135deg, var(--nav-start), var(--nav-end));
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* Grupos de campos del formulario */
@@ -87,8 +87,8 @@
 
 .form-control:focus {
     outline: none;
-    border-color: #ff9800;
-    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255,138,75,0.12);
     background-color: #fff;
 }
 
@@ -123,7 +123,7 @@ input[type="file"].form-control::file-selector-button {
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
-    background-color: #5b2b8f;
+    background-color: var(--primary);
     color: #ffffff;
     cursor: pointer;
     font-size: 0.9rem;
@@ -133,7 +133,7 @@ input[type="file"].form-control::file-selector-button {
 }
 
 input[type="file"].form-control::file-selector-button:hover {
-    background-color: #4a2376;
+    background-color: var(--nav-start);
 }
 
 /* Botones */
@@ -150,14 +150,14 @@ input[type="file"].form-control::file-selector-button:hover {
 }
 
 .btn-primary {
-    background-color: #ff9800;
-    color: #ffffff;
+    background-color: var(--primary);
+    color: var(--on-primary);
 }
 
 .btn-primary:hover {
-    background-color: #e68900;
+    background-color: var(--primary-600);
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(255, 152, 0, 0.4);
+    box-shadow: 0 6px 15px rgba(32,58,107,0.08);
 }
 
 .btn-secondary {

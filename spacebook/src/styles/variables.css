@@ -1,0 +1,32 @@
+:root {
+  --bg: #F4F7FB;            /* Fondo global muy claro */
+  --primary: #203A6B;      /* Azul marino suave (primario) */
+  --primary-600: #1b335e;  /* Variante más oscura */
+  --nav-start: #203A6B;    /* inicio gradiente navbar */
+  --nav-end: #2B5FA3;      /* fin gradiente navbar */
+  --accent: #FF8A4B;       /* acento cálido (coral) */
+  --accent-2: #6CC3D5;     /* acento frío suave (teal) */
+  --muted: #6B7C93;        /* texto secundario */
+  --card-bg: #FFFFFF;      /* tarjetas / paneles claros */
+  --text-dark: #0f1724;    /* texto oscuro sobre fondo claro */
+  --on-primary: #FFFFFF;   /* texto sobre colores primarios */
+  --shadow: rgba(17,24,39,0.08);
+}
+
+/* Ajustes globales seguros */
+html, body {
+  background-color: var(--bg);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Clase utilitaria para secciones claras sobre fondo general */
+.card, .container-light {
+  background-color: var(--card-bg);
+  color: var(--text-dark);
+  box-shadow: 0 6px 18px var(--shadow);
+  border-radius: 8px;
+}

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { UserProvider } from './context/usuario.context.tsx';
 import React from 'react'
 import App from './App.tsx'
+import './styles/variables.css';
 import { registerSW } from 'virtual:pwa-register'
 
 // Registrar el service worker al iniciar la app
