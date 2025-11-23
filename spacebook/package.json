@@ -6,9 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:preview": "npm run build && npm run preview",
     "lint": "eslint .",
+<<<<<<< HEAD
     "preview": "vite preview",
     "test": "vitest"
+=======
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "preview": "vite preview"
+>>>>>>> 5ef04a4db080e9f245fa97e828b31512bdc65211
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
@@ -22,7 +29,12 @@
     "@eslint/js": "^9.36.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
+<<<<<<< HEAD
     "@types/node": "^24.9.2",
+=======
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.10.1",
+>>>>>>> 5ef04a4db080e9f245fa97e828b31512bdc65211
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "@types/testing-library__jest-dom": "^5.14.9",

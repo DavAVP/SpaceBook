@@ -2,18 +2,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       strategies: 'injectManifest',
+      srcDir: ".",
+      filename: "servicesWorker.js",
       registerType: 'autoUpdate',
-      injectManifest:{
-        swSrc: 'public/sw.js', // 👈 path absoluto
-        swDest: 'public/sw.js',
-      },
       injectRegister: 'auto',
       manifest:{
         name: 'SpaceBook',
@@ -37,9 +34,19 @@ export default defineConfig({
       }
     })
   ],
+<<<<<<< HEAD
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.ts'
+=======
+  // @ts-expect-error - Vitest config is valid but TypeScript doesn't recognize it
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    css: true,
+    env: true,            
+>>>>>>> 5ef04a4db080e9f245fa97e828b31512bdc65211
   }
 })

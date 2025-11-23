@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "../styles/login.css";
-// import { useNavigate } from "react-router-dom";
 import { AuthService } from "../services/auth.service";
 
 export default function Register() {
@@ -10,11 +9,11 @@ export default function Register() {
     const [errorPassword, setErrorPassword] = useState(false);
     const [mensajeError, setMensajeError] = useState("");
     const [mensajeExito, setMensajeExito] = useState("");
-    // const navigate = useNavigate();
+
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Reiniciamos errores
     setErrorEmail(false);
     setErrorPassword(false);
     setMensajeError("");
@@ -30,13 +29,13 @@ export default function Register() {
         hayError = true;
     }
     if (hayError) return;
-    const usuario = AuthService.HandleSingUp(email, password);
+    const usuario = AuthService.HandleSingUp(email,password);
     if (!usuario) {
         setMensajeError("No se pudo registrar el usuario. Intenta con otro correo.");
         return;
     }
     console.log("Usuario registrado:", usuario);
-    setMensajeExito("Usuario registrado correctamente");
+    setMensajeExito("Usuario registrado correctamente")
     };
 
     return (
@@ -71,7 +70,7 @@ export default function Register() {
                     <button>Registrarse</button>
                 </form>
                 <div className="helper">
-                    ¿Ya tienes cuenta? <a href="/">Inicia sesión</a>
+                    ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
                 </div>
             </div>
         </div>

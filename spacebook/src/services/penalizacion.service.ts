@@ -4,7 +4,6 @@ import type { IPenalizacion } from "../interfaces/Penalizacion";
 
 export const PenalizacionService = {
     //Crear penalizacion
-    /* async crearPenalizacion(penalizacion: IPenalizacion) { */
     async crearPenalizacion(penalizacion: Omit<IPenalizacion, "id_penalizacion">){
         const {data, error} = await supabase.from('Penalizacion').insert(penalizacion).select().single();
         if(error){
@@ -56,22 +55,26 @@ export const PenalizacionService = {
 
     // Verificar si un usuario tiene una penalización activa
     async usuarioEstaPenalizado(usuario_id: string): Promise<boolean> {
-    const ahora = new Date().toISOString();
+        const ahora = new Date().toISOString();
+        console.log("Hora actual:", ahora);
+        console.log(`Verificando penalización de usuario: ${usuario_id}`);
 
-    const { data, error } = await supabase
-        .from("Penalizacion")
-        .select("*")
-        .eq("usuario_id", usuario_id)
-        .eq("estado_penalizacion", true)
-        .gt("fecha_final", ahora) // Verifica que la fecha final sea mayor a la actual
-        .limit(1);
+        const { data, error } = await supabase
+            .from("Penalizacion")
+            .select("*")
+            .eq("usuario_id", usuario_id)
+            .eq("estado_penalizacion", true)
+            .gt("fecha_final", ahora)
+            .limit(1);
 
-    if (error) {
-        console.log("Error verificando penalización:", error.message);
-        return false;
-    }
+        console.log("Penalizaciones encontradas:", data);
 
-    return Array.isArray(data) && data.length > 0;
+        if (error) {
+            console.log("Error verificando penalización:", error.message);
+            return false;
+        }
+
+        return Array.isArray(data) && data.length > 0;
     }
 
 }

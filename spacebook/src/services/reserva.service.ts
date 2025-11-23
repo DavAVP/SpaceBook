@@ -3,8 +3,7 @@ import type { IReserva } from "../interfaces/Reserva";
 
 export const ReservaService = {
   async crearReserva(reservaPayload: Omit<IReserva, "id_reserva">) {
-    ////
-    // Bloqueo por penalización activa (no permitir reservar si tiene una vigente)
+    // Bloqueo por penalización activa
     try {
       const nowIso = new Date().toISOString();
       const { data: penalActivas, error: penErr } = await supabase
@@ -45,8 +44,6 @@ export const ReservaService = {
       return null;
     }
 
-
-    //// 
     // Insertar la reserva
     const { data: nuevaReserva, error: insertErr } = await supabase
       .from("Reserva")

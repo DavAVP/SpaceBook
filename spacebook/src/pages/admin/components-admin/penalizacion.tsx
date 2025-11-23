@@ -16,8 +16,6 @@ const Penalizacion: React.FC = () => {
 
   // Tiempo máximo para confirmar (10s para pruebas)
   const TIEMPO_LIMITE = 10000;
-
-  // Cargar reservas y espacios
   const fetchReservas = async () => {
     try {
       const data = await ReservaService.ObtenerReserva();
@@ -51,6 +49,7 @@ const Penalizacion: React.FC = () => {
 
       const ahora = new Date();
       const reservasPendientes = data.filter((r) => r.estado === "pendiente");
+      const API_URL = import.meta.env.VITE_API_URL;
 
       for (const reserva of reservasPendientes) {
         const fechaReserva = new Date(reserva.fecha_reserva);
@@ -59,11 +58,22 @@ const Penalizacion: React.FC = () => {
         if (diferencia > TIEMPO_LIMITE) {
           console.log(`Reserva ${reserva.id_reserva} ha superado el límite`);
           // Notificar al admin
-          await fetch("http://localhost:8080/new-penalization-admin", {
+          await fetch(`${API_URL}/new-penalization-admin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               message: `El usuario ${reserva.usuario_id} ha superado el tiempo límite de confirmación.`,
+              serId: reserva.usuario_id,
+              role: "cliente",
+              title: "Reserva Vencida",
+            }),
+          });
+
+          await fetch(`${API_URL}/new-penalization-admin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: `El usuario ${reserva.usuario_id} no confirmó la reserva a tiempo.`,
             }),
           });
         }
@@ -87,20 +97,26 @@ const Penalizacion: React.FC = () => {
   }, []);
 
   const handlePenalizar = async (reserva: IReserva, espacio: IEspacio) => {
+    const API_URL = import.meta.env.VITE_API_URL;
     try {
     // Verificar si ya está penalizado
     const yaPenalizado = await PenalizacionService.usuarioEstaPenalizado(reserva.usuario_id);
     if (yaPenalizado) {
-      toast.warning(`⚠️ El usuario ya tiene una penalización activa.`);
+      toast.warning(`El usuario ya tiene una penalización activa.`);
       return;
     }
     
       const message = `Usted ha sido penalizado para ${espacio.nombre_lugar} ya que se venció el tiempo de confirmación.`;
 
-      await fetch("http://localhost:8080/new-message", {
+      await fetch(`${API_URL}/new-message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          userId: reserva.usuario_id,
+          role: 'cliente',
+          title: 'Penalización'
+        }),
       });
 
       await NotificacionServices.crearNotificacion({
@@ -111,10 +127,10 @@ const Penalizacion: React.FC = () => {
         fecha_envio: new Date().toISOString(),
       });
 
-      toast.info(`🔔 Notificación enviada al usuario ${reserva.usuario_id}`);
+      toast.info(`Notificación enviada al usuario ${reserva.usuario_id}`);
       // Crear penalización manual por 5 minutos en Supabase
       const ahora = new Date();
-      const fin = new Date(ahora.getTime() + 5 * 60 * 1000); // +5 minutos
+      const fin = new Date(ahora.getTime() + 5 * 60 * 1000);
 
       const creada = await PenalizacionService.crearPenalizacion({
         usuario_id: reserva.usuario_id,
@@ -127,7 +143,7 @@ const Penalizacion: React.FC = () => {
       if (!creada) {
         // Fallback backend (service key) si falla desde cliente
         try {
-          const resp = await fetch("http://localhost:8080/admin/penalizar", {
+          const resp = await fetch(`${API_URL}/admin/penalizar`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ usuario_id: reserva.usuario_id, minutos: 5 }),
@@ -150,7 +166,7 @@ const Penalizacion: React.FC = () => {
         toast.success("Penalización creada (directa)");
       }
 
-      // Refrescar listado de penalizaciones si se desea mostrar en UI
+      // Refrescar listado de penalizaciones
       try {
         const nuevas = await PenalizacionService.ObtenerPenalizaciones();
         if (Array.isArray(nuevas)) setPenalizaciones(nuevas);

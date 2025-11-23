@@ -36,7 +36,7 @@ const Home: React.FC = () => {
     return(
         <div>
             <div className="home-page">
-                <h1> Bienvenido a SpaceBook </h1>
+                <h1> Bienvenido a SpaceBooksss </h1>
                 <p> El sitio donde nunca perderás tiempo por una reservacion!</p>
             </div>
 
