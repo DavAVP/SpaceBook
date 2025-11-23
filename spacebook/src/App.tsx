@@ -35,7 +35,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const { user } = useUser();
 
-  const rutassinNavbar = ['/login', '/register', "/"];
+  const rutassinNavbar = ['/login', '/register'];
   const mostrarNavbar = !rutassinNavbar.includes(location.pathname);
   
   useEffect(() => {

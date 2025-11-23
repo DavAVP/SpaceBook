@@ -280,7 +280,7 @@ const Navbar = () => {
             </button>
             <button 
               className="btn-register"
-              onClick={() => navigate('/registro')}
+              onClick={() => navigate('/register')}
             >
               Registrarse
             </button>
