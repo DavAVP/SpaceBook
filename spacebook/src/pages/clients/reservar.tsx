@@ -129,7 +129,7 @@ const Reservar: React.FC = () => {
       };
 
       const nuevaReserva = await ReservaService.crearReserva(reservaPayload);
-     
+
       //verificar el tipo de error
       if (!nuevaReserva) {
         //verificar si el horario está ocupado
@@ -170,7 +170,6 @@ const Reservar: React.FC = () => {
       } catch (error) {
         console.warn("No se pudo enviar la notificación push: ", error);
       }
-
       // Guardar notificación en Supabase
       try {
         await NotificacionServices.crearNotificacion({
