@@ -33,20 +33,5 @@ export default defineConfig({
         ]
       }
     })
-  ],
-<<<<<<< HEAD
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/setupTests.ts'
-=======
-  // @ts-expect-error - Vitest config is valid but TypeScript doesn't recognize it
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/setupTests.ts',
-    css: true,
-    env: true,            
->>>>>>> 5ef04a4db080e9f245fa97e828b31512bdc65211
-  }
+  ]
 })
