@@ -10,13 +10,13 @@ vi.mock('../services/espacio.service', () => ({
 }));
 
 describe('HomeInvitado', () => {
-  it('muestra el mensaje de bienvenida', () => {
+  it('muestra el mensaje de bienvenida', async () => {
     render(
       <BrowserRouter>
         <HomeInvitado />
       </BrowserRouter>
     );
-    expect(screen.getByText(/Bienvenido a SpaceBooks/i)).toBeInTheDocument();
-    expect(screen.getByText(/¡Inicia sesión para reservar tus espacios favoritos!/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Bienvenido a SpaceBooks/i)).toBeInTheDocument();
+    expect(await screen.findByText(/¡Inicia sesión para reservar tus espacios favoritos!/i)).toBeInTheDocument();
   });
 });

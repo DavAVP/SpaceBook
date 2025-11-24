@@ -87,28 +87,28 @@ export default function EditarEspacios() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <label>Nombre del Lugar</label>
-        <input className="form-control mb-2" name="nombre_lugar" value={formData.nombre_lugar} onChange={handleChange} required />
+        <label htmlFor="nombre_lugar">Nombre del Lugar</label>
+        <input id="nombre_lugar" className="form-control mb-2" name="nombre_lugar" value={formData.nombre_lugar} onChange={handleChange} required />
 
-        <label>Descripción</label>
-        <textarea className="form-control mb-2" name="descripcion" value={formData.descripcion} onChange={handleChange} required />
+        <label htmlFor="descripcion">Descripción</label>
+        <textarea id="descripcion" className="form-control mb-2" name="descripcion" value={formData.descripcion} onChange={handleChange} required />
 
-        <label>Tipo</label>
-        <select className="form-control mb-2" name="tipo" value={formData.tipo} onChange={handleChange} required>
+        <label htmlFor="tipo">Tipo</label>
+        <select id="tipo" className="form-control mb-2" name="tipo" value={formData.tipo} onChange={handleChange} required>
           <option value="aula">Aula</option>
           <option value="laboratorio">Laboratorio</option>
           <option value="auditorio">Auditorio</option>
           <option value="sala">Sala de Reuniones</option>
         </select>
 
-        <label>Ubicación</label>
-        <input className="form-control mb-2" name="ubicacion" value={formData.ubicacion} onChange={handleChange} required />
+        <label htmlFor="ubicacion">Ubicación</label>
+        <input id="ubicacion" className="form-control mb-2" name="ubicacion" value={formData.ubicacion} onChange={handleChange} required />
 
-        <label>Capacidad</label>
-        <input className="form-control mb-2" type="number" name="capacidad" value={formData.capacidad} onChange={handleChange} required />
+        <label htmlFor="capacidad">Capacidad</label>
+        <input id="capacidad" className="form-control mb-2" type="number" name="capacidad" value={formData.capacidad} onChange={handleChange} required />
 
-        <label>Foto (si quieres cambiarla)</label>
-        <input className="form-control mb-3" type="file" onChange={(e) => setFormData(prev => ({ ...prev, foto_url: e.target.files?.[0] || prev.foto_url }))} />
+        <label htmlFor="foto">Foto (si quieres cambiarla)</label>
+        <input id="foto" className="form-control mb-3" type="file" onChange={(e) => setFormData(prev => ({ ...prev, foto_url: e.target.files?.[0] || prev.foto_url }))} />
         <div>
             <hr />
             <EditarHorarios  idEspacio ={id!}/>
