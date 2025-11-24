@@ -1,14 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import EditarEspacios from './editarEspacios';
-
 import { vi } from 'vitest';
-vi.mock('../../context/usuario.context', () => ({
-  UserContext: {
-    Provider: ({ children }: any) => children,
-  },
-  useUser: () => ({ user: { is_admin: true, id: 'admin' }, loading: false }),
-}));
+import { UserContext } from '../../context/usuario.context';
 
 vi.mock('../../services/espacio.service', () => ({
   EspacioService: {
@@ -19,12 +13,23 @@ vi.mock('../../services/espacio.service', () => ({
   },
 }));
 
+const fakeUser = {
+  is_admin: true,
+  id: 'admin',
+  app_metadata: {},
+  user_metadata: {},
+  aud: '',
+  created_at: ''
+};
+
 describe('EditarEspacios', () => {
   it('muestra el título y formulario de edición', async () => {
     render(
-      <BrowserRouter>
-        <EditarEspacios />
-      </BrowserRouter>
+      <UserContext.Provider value={{ user: fakeUser, loading: false }}>
+        <BrowserRouter>
+          <EditarEspacios />
+        </BrowserRouter>
+      </UserContext.Provider>
     );
     expect(await screen.findByText(/Editar Espacio/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Nombre del Lugar/i)).toBeInTheDocument();

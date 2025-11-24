@@ -4,18 +4,35 @@ import SubirEspacios from './subirEspacios';
 
 // Mock de contexto de usuario admin
 import { vi } from 'vitest';
-vi.mock('../../context/usuario.context', () => ({
-  UserContext: {
-    Provider: ({ children }: any) => children,
+import { UserContext } from '../../context/usuario.context';
+
+vi.mock('../../services/espacio.service', () => ({
+  EspacioService: {
+    crearEspacio: vi.fn().mockResolvedValue(true),
   },
-  useUser: () => ({ user: { is_admin: true, id: 'admin' }, loading: false }),
 }));
+vi.mock('../../services/storage.service', () => ({
+  StorageService: {
+    uploadfile: vi.fn().mockResolvedValue({ path: 'fakepath', url: 'fakeurl' }),
+  },
+}));
+
+const fakeUser = {
+  is_admin: true,
+  id: 'admin',
+  app_metadata: {},
+  user_metadata: {},
+  aud: '',
+  created_at: ''
+};
 
 describe('SubirEspacios', () => {
   it('muestra el formulario de subir espacio', () => {
     render(
       <BrowserRouter>
-        <SubirEspacios />
+        <UserContext.Provider value={{ user: fakeUser, loading: false }}>
+          <SubirEspacios />
+        </UserContext.Provider>
       </BrowserRouter>
     );
     expect(screen.getByText(/Subir Nuevo Espacio/i)).toBeInTheDocument();
