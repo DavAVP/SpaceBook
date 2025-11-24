@@ -29,7 +29,7 @@ export default function Register() {
         hayError = true;
     }
     if (hayError) return;
-    const usuario = AuthService.HandleSingUp(email,password);
+    const usuario = await AuthService.HandleSingUp(email,password);
     if (!usuario) {
         setMensajeError("No se pudo registrar el usuario. Intenta con otro correo.");
         return;
