@@ -2,14 +2,15 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import PanelAdmin from './panelAdmin';
 
-jest.mock('../../context/usuario.context', () => ({
+import { vi } from 'vitest';
+vi.mock('../../context/usuario.context', () => ({
   useUser: () => ({ user: { is_admin: true }, loading: false }),
 }));
 
-jest.mock('../../services/espacio.service', () => ({
+vi.mock('../../services/espacio.service', () => ({
   EspacioService: {
-    ObtenerEspacios: jest.fn().mockResolvedValue([]),
-    EliminarEspacio: jest.fn().mockResolvedValue(true),
+    ObtenerEspacios: vi.fn().mockResolvedValue([]),
+    EliminarEspacio: vi.fn().mockResolvedValue(true),
   },
 }));
 

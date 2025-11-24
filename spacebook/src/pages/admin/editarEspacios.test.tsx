@@ -2,19 +2,20 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import EditarEspacios from './editarEspacios';
 
-jest.mock('../../context/usuario.context', () => ({
+import { vi } from 'vitest';
+vi.mock('../../context/usuario.context', () => ({
   UserContext: {
     Provider: ({ children }: any) => children,
   },
   useUser: () => ({ user: { is_admin: true, id: 'admin' }, loading: false }),
 }));
 
-jest.mock('../../services/espacio.service', () => ({
+vi.mock('../../services/espacio.service', () => ({
   EspacioService: {
-    ObtenerEspacioID: jest.fn().mockResolvedValue({
+    ObtenerEspacioID: vi.fn().mockResolvedValue({
       nombre_lugar: 'Aula 1', descripcion: 'desc', tipo: 'aula', ubicacion: 'edif', capacidad: 10, foto_url: '', espacio_disponible: true
     }),
-    ActualizarEspacio: jest.fn().mockResolvedValue(true),
+    ActualizarEspacio: vi.fn().mockResolvedValue(true),
   },
 }));
 

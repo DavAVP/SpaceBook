@@ -2,9 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import HomeInvitado from './homeInvitado';
 
-jest.mock('../services/espacio.service', () => ({
+import { vi } from 'vitest';
+vi.mock('../services/espacio.service', () => ({
   EspacioService: {
-    ObtenerEspacios: jest.fn().mockResolvedValue([]),
+    ObtenerEspacios: vi.fn().mockResolvedValue([]),
   },
 }));
 

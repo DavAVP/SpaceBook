@@ -3,7 +3,8 @@ import { BrowserRouter } from 'react-router-dom';
 import SubirEspacios from './subirEspacios';
 
 // Mock de contexto de usuario admin
-jest.mock('../../context/usuario.context', () => ({
+import { vi } from 'vitest';
+vi.mock('../../context/usuario.context', () => ({
   UserContext: {
     Provider: ({ children }: any) => children,
   },

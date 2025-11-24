@@ -2,21 +2,22 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Reservar from './reservar';
 
-jest.mock('../../context/usuario.context', () => ({
+import { vi } from 'vitest';
+vi.mock('../../context/usuario.context', () => ({
   useUser: () => ({ user: { id: 'user1' }, loading: false }),
 }));
 
-jest.mock('../../services/espacio.service', () => ({
+vi.mock('../../services/espacio.service', () => ({
   EspacioService: {
-    ObtenerEspacioID: jest.fn().mockResolvedValue({
+    ObtenerEspacioID: vi.fn().mockResolvedValue({
       id_espacio: '1', nombre_lugar: 'Aula 1', descripcion: 'desc', tipo: 'aula', ubicacion: 'edif', capacidad: 10, foto_url: '', espacio_disponible: true
     }),
   },
 }));
 
-jest.mock('../../services/horaDisponible.service', () => ({
+vi.mock('../../services/horaDisponible.service', () => ({
   HoraDisponibleService: {
-    ObtenerHoraDisponibles: jest.fn().mockResolvedValue([]),
+    ObtenerHoraDisponibles: vi.fn().mockResolvedValue([]),
   },
 }));
 

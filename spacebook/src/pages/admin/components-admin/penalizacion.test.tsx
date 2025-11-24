@@ -1,22 +1,23 @@
 import { render, screen } from '@testing-library/react';
 import Penalizacion from './penalizacion';
 
-jest.mock('../../../services/penalizacion.service', () => ({
+import { vi } from 'vitest';
+vi.mock('../../../services/penalizacion.service', () => ({
   PenalizacionService: {
-    ObtenerPenalizaciones: jest.fn().mockResolvedValue([]),
-    usuarioEstaPenalizado: jest.fn().mockResolvedValue(false),
-    crearPenalizacion: jest.fn().mockResolvedValue(true),
+    ObtenerPenalizaciones: vi.fn().mockResolvedValue([]),
+    usuarioEstaPenalizado: vi.fn().mockResolvedValue(false),
+    crearPenalizacion: vi.fn().mockResolvedValue(true),
   },
 }));
-jest.mock('../../../services/reserva.service', () => ({
+vi.mock('../../../services/reserva.service', () => ({
   ReservaService: {
-    ObtenerReserva: jest.fn().mockResolvedValue([]),
-    ActualizarReserva: jest.fn().mockResolvedValue(true),
+    ObtenerReserva: vi.fn().mockResolvedValue([]),
+    ActualizarReserva: vi.fn().mockResolvedValue(true),
   },
 }));
-jest.mock('../../../services/espacio.service', () => ({
+vi.mock('../../../services/espacio.service', () => ({
   EspacioService: {
-    ObtenerEspacios: jest.fn().mockResolvedValue([]),
+    ObtenerEspacios: vi.fn().mockResolvedValue([]),
   },
 }));
 
