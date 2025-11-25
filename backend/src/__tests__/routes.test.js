@@ -1,6 +1,7 @@
 const request = require('supertest');
 const express = require('express');
 const cors = require('cors');
+jest.mock("../supabase");
 
 const app = express();
 app.use(cors({
