@@ -1,8 +1,7 @@
 const { Router } = require("express");
 const router = Router();
 const webPush = require("../webpush");
-const supabase = require("../supabase"); // IMPORTANTE
-
+const supabase = require("../supabase");
 // Normalizador de roles
 function normalizeRole(payload) {
     if (typeof payload.role === "string") {
@@ -40,7 +39,7 @@ router.post("/subscription", async (req, res) => {
                     p256dh: sub.keys.p256dh,
                     auth: sub.keys.auth,
                     role,
-                    user_id: userId,
+                    user_id: userId ? String(userId) : null,
                 },
             ]);
 
@@ -57,7 +56,7 @@ router.post("/subscription", async (req, res) => {
                     p256dh: sub.keys.p256dh,
                     auth: sub.keys.auth,
                     role,
-                    user_id: userId,
+                    user_id: userId ? String(userId) : null,
                     created_at: new Date().toISOString(),
                 })
                 .eq("endpoint", sub.endpoint);
@@ -219,9 +218,11 @@ router.get("/subscriptions", async (req, res) => {
 
 
 router.post("/subscription/remove", async (req, res) => {
-    const { endpoint } = req.body;
-
-    if (!endpoint) return res.status(400).json({ error: "Se requiere endpoint" });
+    let { endpoint } = req.body;
+    if (!endpoint) {
+        return res.status(400).json({ error: "Se requiere endpoint" });
+    }
+    endpoint = String(endpoint).trim();
 
     const { error, count } = await supabase
         .from("push_subscriptions")
@@ -229,7 +230,14 @@ router.post("/subscription/remove", async (req, res) => {
         .eq("endpoint", endpoint)
         .select();
 
+    if (error) {
+        console.error("Error eliminando suscripción:", error);
+        return res
+            .status(500)
+            .json({ error: "Error eliminando la suscripción" });
+    }
     return res.json({ removed: count || 0 });
 });
+
 
 module.exports = router;
