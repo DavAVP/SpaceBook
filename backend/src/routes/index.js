@@ -27,9 +27,9 @@ router.post("/subscription", async (req, res) => {
 
         const { data: exists } = await supabase
             .from("push_subscriptions")
-            .select("*")
             .eq("endpoint", sub.endpoint)
-            .maybeSingle();
+            .select("*")
+            .single();
 
         if (!exists) {
             // nueva suscripción
@@ -52,14 +52,14 @@ router.post("/subscription", async (req, res) => {
             // actualizar suscripción existente
             await supabase
                 .from("push_subscriptions")
+                .eq("endpoint", sub.endpoint)
                 .update({
                     p256dh: sub.keys.p256dh,
                     auth: sub.keys.auth,
                     role,
                     user_id: userId ? String(userId) : null,
                     created_at: new Date().toISOString(),
-                })
-                .eq("endpoint", sub.endpoint);
+                });
 
             console.log("Suscripción actualizada en Supabase →", {
                 endpoint: sub.endpoint,
@@ -76,12 +76,10 @@ router.post("/subscription", async (req, res) => {
 });
 
 async function getSubscriptions({ role = null, userId = null }) {
-    let query = supabase.from("push_subscriptions").select("*");
-
+    let query = supabase.from("push_subscriptions");
     if (userId) query = query.eq("user_id", String(userId).trim());
     if (!userId && role) query = query.eq("role", role);
-
-    const { data } = await query;
+    const { data } = await query.select("*");
     return data || [];
 }
 
@@ -91,17 +89,12 @@ router.post("/new-message", async (req, res) => {
         const { message, role: rawRole, userId = null, title = "SpaceBook" } = req.body;
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
-
         const role = rawRole ? normalizeRole({ role: rawRole }) : null;
-
         const destinatarios = await getSubscriptions({ role, userId });
-
         if (destinatarios.length === 0) {
             return res.status(200).json({ success: true, sent: 0 });
         }
-
         const payload = JSON.stringify({ title, message });
-
         const results = await Promise.allSettled(
             destinatarios.map((sub) =>
                 webPush.sendNotification(
@@ -124,8 +117,8 @@ router.post("/new-message", async (req, res) => {
                 if (err && err.statusCode === 410) {
                     await supabase
                         .from("push_subscriptions")
-                        .delete()
-                        .eq("endpoint", sub.endpoint);
+                        .eq("endpoint", sub.endpoint)
+                        .delete();
 
                     console.log("Suscripción expirada eliminada:", sub.endpoint);
                 }
@@ -224,8 +217,8 @@ router.post("/subscription/remove", async (req, res) => {
 
     const { data, error } = await supabase
         .from("push_subscriptions")
-        .delete()
         .eq("endpoint", endpoint)
+        .delete()
         .select("*", { count: "exact" });
 
     if (error) {

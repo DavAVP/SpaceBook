@@ -1,5 +1,6 @@
 const webpush = require('../webpush');
-jest.mock("../supabase");
+jest.mock('../supabase', () => require('./__mocks__/supabase'));
+
 
 // Mock para evitar configuración real
 jest.mock('web-push', () => ({
