@@ -2,7 +2,7 @@ const { Router } = require("express");
 const router = Router();
 const webPush = require("../webpush");
 const supabase = require("../supabase");
-// Normalizador de roles
+
 function normalizeRole(payload) {
     if (typeof payload.role === "string") {
         const r = payload.role.toLowerCase();
@@ -25,7 +25,6 @@ router.post("/subscription", async (req, res) => {
         const role = normalizeRole(sub);
         const userId = sub.userId || sub.user_id || null;
 
-        // verificar si YA EXISTE en Supabase
         const { data: exists } = await supabase
             .from("push_subscriptions")
             .select("*")
@@ -33,6 +32,7 @@ router.post("/subscription", async (req, res) => {
             .maybeSingle();
 
         if (!exists) {
+            // nueva suscripción
             await supabase.from("push_subscriptions").insert([
                 {
                     endpoint: sub.endpoint,
@@ -69,19 +69,17 @@ router.post("/subscription", async (req, res) => {
         }
 
         return res.status(200).json({ ok: true });
-
     } catch (error) {
         console.error("Error /subscription:", error);
         return res.status(500).json({ error: "Error interno" });
     }
 });
 
-
 async function getSubscriptions({ role = null, userId = null }) {
     let query = supabase.from("push_subscriptions").select("*");
 
     if (userId) query = query.eq("user_id", String(userId));
-    if (role) query = query.eq("role", role);
+    if (!userId && role) query = query.eq("role", role);
 
     const { data } = await query;
     return data || [];
@@ -115,13 +113,13 @@ router.post("/new-message", async (req, res) => {
             )
         );
 
+        // eliminar expiradas
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             const sub = destinatarios[i];
 
             if (result.status === "rejected") {
                 const err = result.reason;
-
                 if (err && err.statusCode === 410) {
                     await supabase
                         .from("push_subscriptions")
@@ -134,13 +132,11 @@ router.post("/new-message", async (req, res) => {
         }
 
         return res.status(200).json({ success: true, sent: destinatarios.length });
-
     } catch (error) {
         console.error("Error /new-message:", error);
         return res.status(500).json({ error: "Error interno" });
     }
 });
-
 
 router.post("/new-reservation-admin", async (req, res) => {
     try {
@@ -169,7 +165,6 @@ router.post("/new-reservation-admin", async (req, res) => {
         );
 
         return res.status(200).json({ success: true, sent: destinatarios.length });
-
     } catch (error) {
         console.error("Error en /new-reservation-admin:", error);
         return res.status(500).json({ error: "Error interno" });
@@ -203,25 +198,27 @@ router.post("/new-penalization-admin", async (req, res) => {
         );
 
         return res.status(200).json({ success: true, sent: destinatarios.length });
-
     } catch (error) {
         console.error("Error en /new-penalization-admin:", error);
         return res.status(500).json({ error: "Error interno" });
     }
 });
 
-
 router.get("/subscriptions", async (req, res) => {
-    const { data } = await supabase.from("push_subscriptions").select("endpoint, role, user_id");
+    const { data } = await supabase
+        .from("push_subscriptions")
+        .select("endpoint, role, user_id");
+
     res.json(data);
 });
 
-
 router.post("/subscription/remove", async (req, res) => {
     let { endpoint } = req.body;
+
     if (!endpoint) {
         return res.status(400).json({ error: "Se requiere endpoint" });
     }
+
     endpoint = String(endpoint).trim();
 
     const { error, count } = await supabase
@@ -232,12 +229,10 @@ router.post("/subscription/remove", async (req, res) => {
 
     if (error) {
         console.error("Error eliminando suscripción:", error);
-        return res
-            .status(500)
-            .json({ error: "Error eliminando la suscripción" });
+        return res.status(500).json({ error: "Error eliminando la suscripción" });
     }
+
     return res.json({ removed: count || 0 });
 });
-
 
 module.exports = router;
