@@ -25,4 +25,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-app.listen(8080, () => console.log('Servidor corriendo en http://localhost:8080'));
+// app.listen(8080, () => console.log('Servidor corriendo en http://localhost:8080'));
+
+module.exports = app;
