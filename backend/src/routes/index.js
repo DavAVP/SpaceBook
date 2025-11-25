@@ -78,12 +78,13 @@ router.post("/subscription", async (req, res) => {
 async function getSubscriptions({ role = null, userId = null }) {
     let query = supabase.from("push_subscriptions").select("*");
 
-    if (userId) query = query.eq("user_id", String(userId));
+    if (userId) query = query.eq("user_id", String(userId).trim());
     if (!userId && role) query = query.eq("role", role);
 
     const { data } = await query;
     return data || [];
 }
+
 
 router.post("/new-message", async (req, res) => {
     try {
@@ -221,18 +222,18 @@ router.post("/subscription/remove", async (req, res) => {
 
     endpoint = String(endpoint).trim();
 
-    const { error, count } = await supabase
+    const { data, error } = await supabase
         .from("push_subscriptions")
         .delete()
         .eq("endpoint", endpoint)
-        .select();
+        .select("*", { count: "exact" });
 
     if (error) {
         console.error("Error eliminando suscripción:", error);
         return res.status(500).json({ error: "Error eliminando la suscripción" });
     }
 
-    return res.json({ removed: count || 0 });
+    return res.json({ removed: data?.length || 0 });
 });
 
 module.exports = router;
