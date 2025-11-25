@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express()
 const path = require('path')
 
-const allowedOrigin = process.env.FRONTED_URL || 'http://localhost:4173';
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:4173';
 app.use(cors({
     origin: [allowedOrigin],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -26,6 +26,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// app.listen(8080, () => console.log('Servidor corriendo en http://localhost:8080'));
+app.listen(8080, () => console.log('Servidor corriendo en http://localhost:8080'));
 
 module.exports = app;
