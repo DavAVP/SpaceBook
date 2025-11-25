@@ -26,6 +26,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-app.listen(8080, () => console.log('Servidor corriendo en http://localhost:8080'));
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
 
 module.exports = app;
