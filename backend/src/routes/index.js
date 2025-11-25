@@ -99,9 +99,7 @@ router.post("/new-message", async (req, res) => {
         const destinatarios = await getSubscriptions({ role, userId });
 
         if (destinatarios.length === 0) {
-            return res.status(400).json({
-                error: "No hay suscriptores registrados para este rol/usuario",
-            });
+            return res.status(200).json({ success: true, sent: 0 });
         }
 
         const payload = JSON.stringify({ title, message });
@@ -225,12 +223,13 @@ router.post("/subscription/remove", async (req, res) => {
 
     if (!endpoint) return res.status(400).json({ error: "Se requiere endpoint" });
 
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from("push_subscriptions")
         .delete()
-        .eq("endpoint", endpoint);
+        .eq("endpoint", endpoint)
+        .select();
 
-    return res.json({ removed: !error ? true : false });
+    return res.json({ removed: count || 0 });
 });
 
 module.exports = router;
