@@ -1,30 +1,25 @@
-
 import ReactDom from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom';
-import { UserProvider } from './context/usuario.context.tsx';
+import { BrowserRouter } from 'react-router-dom'
+import { UserProvider } from './context/usuario.context.tsx'
 import React from 'react'
 import App from './App.tsx'
-import './styles/variables.css';
-import { registerSW } from 'virtual:pwa-register'
+import './styles/variables.css'
 
-// Registrar el service worker al iniciar la app
-registerSW({
-  onRegistered() {
-    console.log('Service Worker registrado con éxito');
-  },
-  onNeedRefresh() {
-    console.log('Hay una nueva versión de la app');
-  }
-});
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/servicesWorker.js')
+      .then(() => console.log('services registrador propio'))
+      .catch(err => console.error('Error registrando SW:', err));
+  });
+}
 
 ReactDom.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <UserProvider>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-    </ UserProvider>
-  </React.StrictMode>,
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </UserProvider>
+  </React.StrictMode>
 )
-
-
