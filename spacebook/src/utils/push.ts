@@ -1,28 +1,32 @@
-export async function Suscripcion(user?: {id: string, is_admin: boolean}) {
-    console.log(' VITE_API_URL:', import.meta.env.VITE_API_URL);
-    
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
+function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+}
 
+export async function Suscripcion(user?: {id: string, is_admin: boolean}) {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        
+        const ApiKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+        if(!ApiKey){
+            throw new Error("error")
+            return
+        }
+        
         const register = await navigator.serviceWorker.ready;
         const suscripcion = await register.pushManager.subscribe({
-            userVisibleOnly: true
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(ApiKey)
         });
 
         const payloadJson = suscripcion.toJSON();
-        if (!payloadJson?.endpoint || !payloadJson?.keys?.p256dh) {
-            console.log(' Suscripcion invalida, no se envian al backend');
+        if(!payloadJson?.endpoint || !payloadJson?.keys?.p256dh){
+            console.log('Suscripcion invalida, no se envian al backend')
             return;
         }
         
-        const apiUrl = import.meta.env.VITE_API_URL;
-        if (!apiUrl) {
-            console.error(" VITE_API_URL no está configurada");
-            throw new Error("VITE_API_URL no está configurada");
-        }
-
-        console.log(' Enviando suscripción a:', `${apiUrl}/subscription`);
-        
-        const res = await fetch(`${apiUrl}/subscription`, {     
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/subscription`, {     
             method: 'POST',
             body: JSON.stringify({
                 ...payloadJson,
@@ -37,10 +41,8 @@ export async function Suscripcion(user?: {id: string, is_admin: boolean}) {
             console.error("Error al guardar la suscripción:", text);
             return;
         }
-
-        console.log(' Usuario suscrito correctamente');
-        
+        console.log('Usuario suscrito correctamente');
     } else {
-        console.log('Push notifications no soportadas');
+        console.log('Push notificacion no soporta');
     }
 }
