@@ -27,8 +27,8 @@ router.post("/subscription", async (req, res) => {
 
         const { data: exists } = await supabase
             .from("push_subscriptions")
-            .eq("endpoint", sub.endpoint)
             .select("*")
+            .eq("endpoint", sub.endpoint)
             .single();
 
         if (!exists) {
@@ -52,14 +52,14 @@ router.post("/subscription", async (req, res) => {
             // actualizar suscripción existente
             await supabase
                 .from("push_subscriptions")
-                .eq("endpoint", sub.endpoint)
                 .update({
                     p256dh: sub.keys.p256dh,
                     auth: sub.keys.auth,
                     role,
                     user_id: userId ? String(userId) : null,
                     created_at: new Date().toISOString(),
-                });
+                })
+                .eq("endpoint", sub.endpoint)
 
             console.log("Suscripción actualizada en Supabase →", {
                 endpoint: sub.endpoint,
@@ -117,8 +117,8 @@ router.post("/new-message", async (req, res) => {
                 if (err && err.statusCode === 410) {
                     await supabase
                         .from("push_subscriptions")
+                        .delete()
                         .eq("endpoint", sub.endpoint)
-                        .delete();
 
                     console.log("Suscripción expirada eliminada:", sub.endpoint);
                 }
@@ -217,8 +217,8 @@ router.post("/subscription/remove", async (req, res) => {
 
     const { data, error } = await supabase
         .from("push_subscriptions")
-        .eq("endpoint", endpoint)
         .delete()
+        .eq("endpoint", endpoint)
         .select("*", { count: "exact" });
 
     if (error) {

@@ -47,7 +47,17 @@ function buildChain({ table, filters = [], isDelete = false, data = null } = {})
         count: opts.count === "exact" ? filtered.length : undefined,
         single: () => ({ data: filtered[0] || null }),
         maybeSingle: () => ({ data: filtered[0] || null }),
-        eq: (key, value) => chain({ filters: [...filters, [key, value]] }), // ✅ permite encadenar eq()
+        eq: (key, value) => {
+          // When eq() is called after select(), return a new select result with updated filters
+          const newFiltered = filterData(_data, [...filters, [key, value]]);
+          return {
+            data: newFiltered,
+            count: opts.count === "exact" ? newFiltered.length : undefined,
+            single: () => ({ data: newFiltered[0] || null }),
+            maybeSingle: () => ({ data: newFiltered[0] || null }),
+            eq: (k, v) => result.eq(k, v), // Allow further chaining
+          };
+        },
       };
 
       if (isDelete) {
@@ -103,20 +113,45 @@ function buildChain({ table, filters = [], isDelete = false, data = null } = {})
     },
 
     delete() {
-      const toRemove = filterData(subscriptions, filters);
-      toRemove.forEach((sub) => {
-        const idx = subscriptions.findIndex(
-          (s) =>
-            normalize(s.endpoint, "endpoint") === normalize(sub.endpoint, "endpoint") &&
-            (sub.user_id ? normalize(s.user_id, "user_id") === normalize(sub.user_id, "user_id") : true)
-        );
-        if (idx >= 0) subscriptions.splice(idx, 1);
-      });
+      // delete() debe permitir encadenar eq() y opcionalmente select()
+      // La eliminación ocurre cuando se termina la cadena
+      
+      function executeDelete(deleteFilters) {
+        const toRemove = filterData(subscriptions, deleteFilters);
+        toRemove.forEach((sub) => {
+          const idx = subscriptions.findIndex(
+            (s) =>
+              normalize(s.endpoint, "endpoint") === normalize(sub.endpoint, "endpoint") &&
+              (sub.user_id ? normalize(s.user_id, "user_id") === normalize(sub.user_id, "user_id") : true)
+          );
+          if (idx >= 0) subscriptions.splice(idx, 1);
+        });
+        return toRemove;
+      }
+      
       return {
-        select: (fields = "*", opts = {}) => ({
-          data: toRemove,
-          count: opts.count === "exact" ? toRemove.length : undefined,
-        }),
+        eq: (key, value) => {
+          const newFilters = [...filters, [key, value]];
+          const removed = executeDelete(newFilters);
+          
+          // Retornar objeto que permite select() opcional
+          return {
+            select: (fields = "*", opts = {}) => ({
+              data: removed,
+              count: opts.count === "exact" ? removed.length : undefined,
+            }),
+            // También retornar data directamente para compatibilidad
+            data: removed,
+          };
+        },
+        select: (fields = "*", opts = {}) => {
+          // Si select() se llama directamente después de delete() sin eq()
+          const removed = executeDelete(filters);
+          return {
+            data: removed,
+            count: opts.count === "exact" ? removed.length : undefined,
+          };
+        },
       };
     },
   };
