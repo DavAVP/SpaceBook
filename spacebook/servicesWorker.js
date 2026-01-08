@@ -16,15 +16,27 @@ self.addEventListener('push', event => {
   }
 
   const title = data.title || 'SpaceBook';
+  const body = data.message || 'Tienes una nueva notificación.';
   const options = {
-    body: data.message || 'Tienes una nueva notificación.',
+    body,
     icon: 'pwa-512x512.png',
     badge: 'pwa-512x512.png',
     vibrate: [100, 50, 100],
     data: { url: '/' }
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(title, options);
+      const clientsList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+      clientsList.forEach(client => {
+        client.postMessage({
+          type: 'PUSH_NOTIFICATION',
+          payload: { title, message: body, raw: data }
+        });
+      });
+    })()
+  );
 });
 
 self.addEventListener('notificationclick', event => {
@@ -34,7 +46,7 @@ self.addEventListener('notificationclick', event => {
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (const client of windowClients) {
-          if (client.url.includes(self.origin) && 'focus' in client) {
+          if (client.url.startsWith(self.location.origin) && 'focus' in client) {
             return client.focus();
           }
         }

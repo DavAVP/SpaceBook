@@ -8,7 +8,7 @@ import { useUser } from './context/usuario.context'
 import EditarEspacios from './pages/admin/editarEspacios'
 import Reservar from './pages/clients/reservar'
 import Navbar from './components/navbar'
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect } from 'react'
 import MisReservas from './pages/clients/components-clients/MisReservar'
@@ -48,6 +48,19 @@ const App: React.FC = () => {
         .catch(err => console.error('Error al suscribirse:', err));
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.data || event.data.type !== 'PUSH_NOTIFICATION') return;
+      const { title, message } = event.data.payload || {};
+      toast.info(message || title || 'Tienes una nueva notificación');
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+  }, []);
 
 
 
