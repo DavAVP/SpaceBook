@@ -1,4 +1,4 @@
-const { Router } = require("express");
+﻿const { Router } = require("express");
 const router = Router();
 const webPush = require("../webpush");
 const supabase = require("../supabase");
@@ -32,7 +32,6 @@ router.post("/subscription", async (req, res) => {
             .single();
 
         if (!exists) {
-            // nueva suscripción
             await supabase.from("push_subscriptions").insert([
                 {
                     endpoint: sub.endpoint,
@@ -43,13 +42,12 @@ router.post("/subscription", async (req, res) => {
                 },
             ]);
 
-            console.log("Nueva suscripción guardada en Supabase →", {
+            console.log("Nueva suscripción guardada en Supabase", {
                 endpoint: sub.endpoint,
                 role,
                 userId,
             });
         } else {
-            // actualizar suscripción existente
             await supabase
                 .from("push_subscriptions")
                 .update({
@@ -59,9 +57,9 @@ router.post("/subscription", async (req, res) => {
                     user_id: userId ? String(userId) : null,
                     created_at: new Date().toISOString(),
                 })
-                .eq("endpoint", sub.endpoint)
+                .eq("endpoint", sub.endpoint);
 
-            console.log("Suscripción actualizada en Supabase →", {
+            console.log("Suscripción actualizada en Supabase", {
                 endpoint: sub.endpoint,
                 role,
                 userId,
@@ -83,20 +81,53 @@ async function getSubscriptions({ role = null, userId = null }) {
     return data || [];
 }
 
+function splitValidSubscriptions(subscriptions = []) {
+    const valid = [];
+    const invalidEndpoints = [];
 
-router.post("/new-message", async (req, res) => {
-    try {
-        const { message, role: rawRole, userId = null, title = "SpaceBook" } = req.body;
-
-        if (!message) return res.status(400).json({ error: "Falta el mensaje" });
-        const role = rawRole ? normalizeRole({ role: rawRole }) : null;
-        const destinatarios = await getSubscriptions({ role, userId });
-        if (destinatarios.length === 0) {
-            return res.status(200).json({ success: true, sent: 0 });
+    for (const sub of subscriptions) {
+        if (sub && sub.endpoint && sub.p256dh && sub.auth) {
+            valid.push(sub);
+        } else if (sub?.endpoint) {
+            invalidEndpoints.push(sub.endpoint);
         }
-        const payload = JSON.stringify({ title, message });
-        const results = await Promise.allSettled(
-            destinatarios.map((sub) =>
+    }
+
+    return { valid, invalidEndpoints };
+}
+
+async function purgeSubscriptions(endpoints = []) {
+    if (!Array.isArray(endpoints) || endpoints.length === 0) return;
+    try {
+        const deleteBuilder = supabase.from("push_subscriptions").delete();
+        if (typeof deleteBuilder.in === "function") {
+            await deleteBuilder.in("endpoint", endpoints);
+        } else {
+            for (const endpoint of endpoints) {
+                await supabase
+                    .from("push_subscriptions")
+                    .delete()
+                    .eq("endpoint", endpoint);
+            }
+        }
+        console.log("Suscripciones inválidas eliminadas:", endpoints);
+    } catch (err) {
+        console.error("No se pudieron eliminar suscripciones inválidas:", err);
+    }
+}
+
+async function dispatchNotifications(subscriptions = [], payload) {
+    const { valid, invalidEndpoints } = splitValidSubscriptions(subscriptions);
+
+    if (invalidEndpoints.length) await purgeSubscriptions(invalidEndpoints);
+
+    if (valid.length === 0) {
+        return { sent: 0, attempted: 0 };
+    }
+
+    const results = await Promise.allSettled(
+        valid.map((sub) =>
+            Promise.resolve().then(() =>
                 webPush.sendNotification(
                     {
                         endpoint: sub.endpoint,
@@ -105,27 +136,48 @@ router.post("/new-message", async (req, res) => {
                     payload
                 )
             )
-        );
+        )
+    );
 
-        // eliminar expiradas
-        for (let i = 0; i < results.length; i++) {
-            const result = results[i];
-            const sub = destinatarios[i];
+    const expiredEndpoints = [];
+    let sent = 0;
 
-            if (result.status === "rejected") {
-                const err = result.reason;
-                if (err && err.statusCode === 410) {
-                    await supabase
-                        .from("push_subscriptions")
-                        .delete()
-                        .eq("endpoint", sub.endpoint)
-
-                    console.log("Suscripción expirada eliminada:", sub.endpoint);
-                }
-            }
+    results.forEach((result, idx) => {
+        if (result.status === "fulfilled") {
+            sent += 1;
+            return;
         }
 
-        return res.status(200).json({ success: true, sent: destinatarios.length });
+        const err = result.reason;
+        if (err && err.statusCode === 410) {
+            expiredEndpoints.push(valid[idx].endpoint);
+        } else {
+            console.error("Error enviando notificación push:", err);
+        }
+    });
+
+    if (expiredEndpoints.length) await purgeSubscriptions(expiredEndpoints);
+
+    return { sent, attempted: valid.length };
+}
+
+router.post("/new-message", async (req, res) => {
+    try {
+        const { message, role: rawRole, userId = null, title = "SpaceBook" } = req.body;
+
+        if (!message) return res.status(400).json({ error: "Falta el mensaje" });
+        const role = rawRole ? normalizeRole({ role: rawRole }) : null;
+        const destinatarios = await getSubscriptions({ role, userId });
+        const { sent, attempted } = await dispatchNotifications(
+            destinatarios,
+            JSON.stringify({ title, message })
+        );
+
+        if (attempted === 0) {
+            return res.status(200).json({ success: true, sent: 0 });
+        }
+
+        return res.status(200).json({ success: true, sent });
     } catch (error) {
         console.error("Error /new-message:", error);
         return res.status(500).json({ error: "Error interno" });
@@ -139,26 +191,16 @@ router.post("/new-reservation-admin", async (req, res) => {
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
 
         const destinatarios = await getSubscriptions({ role: "admin" });
+        const { sent, attempted } = await dispatchNotifications(
+            destinatarios,
+            JSON.stringify({ title, message })
+        );
 
-        if (destinatarios.length === 0) {
+        if (attempted === 0) {
             return res.status(400).json({ error: "No hay admins suscritos" });
         }
 
-        const payload = JSON.stringify({ title, message });
-
-        await Promise.allSettled(
-            destinatarios.map((sub) =>
-                webPush.sendNotification(
-                    {
-                        endpoint: sub.endpoint,
-                        keys: { p256dh: sub.p256dh, auth: sub.auth },
-                    },
-                    payload
-                )
-            )
-        );
-
-        return res.status(200).json({ success: true, sent: destinatarios.length });
+        return res.status(200).json({ success: true, sent });
     } catch (error) {
         console.error("Error en /new-reservation-admin:", error);
         return res.status(500).json({ error: "Error interno" });
@@ -172,26 +214,16 @@ router.post("/new-penalization-admin", async (req, res) => {
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
 
         const destinatarios = await getSubscriptions({ role: "admin" });
+        const { sent, attempted } = await dispatchNotifications(
+            destinatarios,
+            JSON.stringify({ title, message })
+        );
 
-        if (destinatarios.length === 0) {
+        if (attempted === 0) {
             return res.status(400).json({ error: "No hay admins suscritos" });
         }
 
-        const payload = JSON.stringify({ title, message });
-
-        await Promise.allSettled(
-            destinatarios.map((sub) =>
-                webPush.sendNotification(
-                    {
-                        endpoint: sub.endpoint,
-                        keys: { p256dh: sub.p256dh, auth: sub.auth },
-                    },
-                    payload
-                )
-            )
-        );
-
-        return res.status(200).json({ success: true, sent: destinatarios.length });
+        return res.status(200).json({ success: true, sent });
     } catch (error) {
         console.error("Error en /new-penalization-admin:", error);
         return res.status(500).json({ error: "Error interno" });
