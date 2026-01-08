@@ -25,14 +25,21 @@ router.post("/subscription", async (req, res) => {
         const role = normalizeRole(sub);
         const userId = sub.userId || sub.user_id || null;
 
-        const { data: exists } = await supabase
+        const { data: exists, error: existsError } = await supabase
             .from("push_subscriptions")
             .select("*")
             .eq("endpoint", sub.endpoint)
             .single();
 
+        if (existsError && existsError.code !== "PGRST116") {
+            console.error("Supabase error buscando suscripción", existsError);
+            throw new Error("No se pudo consultar la suscripción");
+        }
+
         if (!exists) {
-            await supabase.from("push_subscriptions").insert([
+            const { error: insertError } = await supabase
+                .from("push_subscriptions")
+                .insert([
                 {
                     endpoint: sub.endpoint,
                     p256dh: sub.keys.p256dh,
@@ -42,13 +49,18 @@ router.post("/subscription", async (req, res) => {
                 },
             ]);
 
+            if (insertError) {
+                console.error("Supabase error creando suscripción", insertError);
+                throw new Error("No se pudo guardar la suscripción");
+            }
+
             console.log("Nueva suscripción guardada en Supabase", {
                 endpoint: sub.endpoint,
                 role,
                 userId,
             });
         } else {
-            await supabase
+            const { error: updateError } = await supabase
                 .from("push_subscriptions")
                 .update({
                     p256dh: sub.keys.p256dh,
@@ -58,6 +70,11 @@ router.post("/subscription", async (req, res) => {
                     created_at: new Date().toISOString(),
                 })
                 .eq("endpoint", sub.endpoint);
+
+            if (updateError) {
+                console.error("Supabase error actualizando suscripción", updateError);
+                throw new Error("No se pudo actualizar la suscripción");
+            }
 
             console.log("Suscripción actualizada en Supabase", {
                 endpoint: sub.endpoint,
@@ -77,7 +94,11 @@ async function getSubscriptions({ role = null, userId = null }) {
     let query = supabase.from("push_subscriptions");
     if (userId) query = query.eq("user_id", String(userId).trim());
     if (!userId && role) query = query.eq("role", role);
-    const { data } = await query.select("*");
+    const { data, error } = await query.select("*");
+    if (error) {
+        console.error("Supabase error obteniendo suscripciones", { role, userId, error });
+        throw new Error("No se pudieron obtener las suscripciones");
+    }
     return data || [];
 }
 
@@ -101,13 +122,17 @@ async function purgeSubscriptions(endpoints = []) {
     try {
         const deleteBuilder = supabase.from("push_subscriptions").delete();
         if (typeof deleteBuilder.in === "function") {
-            await deleteBuilder.in("endpoint", endpoints);
+            const { error } = await deleteBuilder.in("endpoint", endpoints);
+            if (error) {
+                throw error;
+            }
         } else {
             for (const endpoint of endpoints) {
-                await supabase
+                const { error } = await supabase
                     .from("push_subscriptions")
                     .delete()
                     .eq("endpoint", endpoint);
+                if (error) throw error;
             }
         }
         console.log("Suscripciones inválidas eliminadas:", endpoints);
