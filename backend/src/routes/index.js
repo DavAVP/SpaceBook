@@ -291,5 +291,5 @@ router.post("/subscription/remove", async (req, res) => {
 
     return res.json({ removed: data?.length || 0 });
 });
-
+// Exportar el router
 module.exports = router;
