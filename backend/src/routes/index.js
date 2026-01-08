@@ -91,10 +91,13 @@ router.post("/subscription", async (req, res) => {
 });
 
 async function getSubscriptions({ role = null, userId = null }) {
-    let query = supabase.from("push_subscriptions");
-    if (userId) query = query.eq("user_id", String(userId).trim());
-    if (!userId && role) query = query.eq("role", role);
-    const { data, error } = await query.select("*");
+    let query = supabase.from("push_subscriptions").select("*");
+    if (userId) {
+        query = query.eq("user_id", String(userId).trim());
+    } else if (role) {
+        query = query.eq("role", role);
+    }
+    const { data, error } = await query;
     if (error) {
         console.error("Supabase error obteniendo suscripciones", { role, userId, error });
         throw new Error("No se pudieron obtener las suscripciones");
