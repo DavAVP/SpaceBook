@@ -167,12 +167,14 @@ router.post("/new-message", async (req, res) => {
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
         const role = rawRole ? normalizeRole({ role: rawRole }) : null;
+        console.log("/new-message body", { role, userId, title });
         const destinatarios = await getSubscriptions({ role, userId });
         const { sent, attempted } = await dispatchNotifications(
             destinatarios,
             JSON.stringify({ title, message })
         );
 
+        console.log("/new-message result", { attempted, sent });
         if (attempted === 0) {
             return res.status(200).json({ success: true, sent: 0 });
         }
@@ -180,7 +182,7 @@ router.post("/new-message", async (req, res) => {
         return res.status(200).json({ success: true, sent });
     } catch (error) {
         console.error("Error /new-message:", error);
-        return res.status(500).json({ error: "Error interno" });
+        return res.status(500).json({ error: error?.message || "Error interno" });
     }
 });
 
@@ -190,12 +192,14 @@ router.post("/new-reservation-admin", async (req, res) => {
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
 
+        console.log("/new-reservation-admin body", { title });
         const destinatarios = await getSubscriptions({ role: "admin" });
         const { sent, attempted } = await dispatchNotifications(
             destinatarios,
             JSON.stringify({ title, message })
         );
 
+        console.log("/new-reservation-admin result", { attempted, sent });
         if (attempted === 0) {
             return res.status(400).json({ error: "No hay admins suscritos" });
         }
@@ -203,7 +207,7 @@ router.post("/new-reservation-admin", async (req, res) => {
         return res.status(200).json({ success: true, sent });
     } catch (error) {
         console.error("Error en /new-reservation-admin:", error);
-        return res.status(500).json({ error: "Error interno" });
+        return res.status(500).json({ error: error?.message || "Error interno" });
     }
 });
 
@@ -213,12 +217,14 @@ router.post("/new-penalization-admin", async (req, res) => {
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
 
+        console.log("/new-penalization-admin body", { title });
         const destinatarios = await getSubscriptions({ role: "admin" });
         const { sent, attempted } = await dispatchNotifications(
             destinatarios,
             JSON.stringify({ title, message })
         );
 
+        console.log("/new-penalization-admin result", { attempted, sent });
         if (attempted === 0) {
             return res.status(400).json({ error: "No hay admins suscritos" });
         }
@@ -226,7 +232,7 @@ router.post("/new-penalization-admin", async (req, res) => {
         return res.status(200).json({ success: true, sent });
     } catch (error) {
         console.error("Error en /new-penalization-admin:", error);
-        return res.status(500).json({ error: "Error interno" });
+        return res.status(500).json({ error: error?.message || "Error interno" });
     }
 });
 
