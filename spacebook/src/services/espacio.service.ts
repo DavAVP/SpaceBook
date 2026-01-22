@@ -47,6 +47,24 @@ export const EspacioService = {
         return data as IEspacio
     },
 
+    // Obtener varios espacios por IDs (para mapear id -> nombre)
+    async ObtenerEspaciosPorIds(ids: string[]) {
+        const uniqueIds = Array.from(new Set(ids)).filter(Boolean);
+        if (uniqueIds.length === 0) return [] as Pick<IEspacio, 'id_espacio' | 'nombre_lugar'>[];
+
+        const { data, error } = await supabase
+            .from('Espacio')
+            .select('id_espacio, nombre_lugar')
+            .in('id_espacio', uniqueIds);
+
+        if (error) {
+            console.log('Error al obtener espacios por ids', error.message);
+            return [] as Pick<IEspacio, 'id_espacio' | 'nombre_lugar'>[];
+        }
+
+        return (data || []) as Pick<IEspacio, 'id_espacio' | 'nombre_lugar'>[];
+    },
+
     //Actualizar espacioo
     async ActualizarEspacio(id_espacio: string, espacio: Partial<IEspacio>, id_horario: string, horario: Partial<IHorarioDisponible>){
         await supabase.from('HorarioDisponible').update(horario).eq('id_horario', id_horario).select().single()

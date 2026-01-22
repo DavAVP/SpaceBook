@@ -203,86 +203,115 @@ const Reservar: React.FC = () => {
   if (!espacio) return <p>No se encontró el espacio.</p>;
 
   return (
-    <div className="reservar-container">
-      <h1>Reservar Espacio</h1>
-
-      <div className="espacio-details">
-        <img src={espacio.foto_url} alt={espacio.nombre_lugar} />
-        <p><strong>Nombre:</strong> {espacio.nombre_lugar}</p>
-        <p><strong>Descripción:</strong> {espacio.descripcion}</p>
-        <p><strong>Capacidad:</strong> {espacio.capacidad}</p>
+    <div className="reservar-page">
+      <div className="reservar-header">
+        <h1>Reservar espacio</h1>
+        <p>Elige un día y rango de horas. Te avisaremos para confirmar.</p>
       </div>
 
-      <h2>Selecciona tu Horario</h2>
-      {diasDisponibles.length > 0 ? (
-        <div className="formulario-reserva">
-          <div className="form-group">
-            <label htmlFor="dia">Día de la semana:</label>
-            <select 
-              id="dia"
-              className="form-control"
-              value={diaSeleccionado}
-              onChange={(e) => setDiaSeleccionado(e.target.value)}
-            >
-              <option value="">Seleccione un día...</option>
-              {diasDisponibles.map((dia) => (
-                <option key={dia} value={dia}>
-                  {dia.charAt(0).toUpperCase() + dia.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="horaInicio">Hora de inicio:</label>
-            <input
-              id="horaInicio"
-              type="time"
-              className="form-control"
-              value={horaInicio}
-              onChange={(e) => setHoraInicio(e.target.value)}
+      <div className="reservar-layout">
+        <section className="reservar-card reservar-info" aria-label="Información del espacio">
+          <div className="espacio-details">
+            <img
+              src={espacio.foto_url || "https://via.placeholder.com/1200x600"}
+              alt={espacio.nombre_lugar}
             />
+            <div className="espacio-meta">
+              <h2 className="espacio-titulo">{espacio.nombre_lugar}</h2>
+              <p className="espacio-capacidad"><strong>Capacidad:</strong> {espacio.capacidad}</p>
+              <p className="espacio-descripcion"><strong>Descripción:</strong> {espacio.descripcion}</p>
+            </div>
           </div>
+        </section>
 
-          <div className="form-group">
-            <label htmlFor="horaFin">Hora de fin:</label>
-            <input
-              id="horaFin"
-              type="time"
-              className="form-control"
-              value={horaFin}
-              onChange={(e) => setHoraFin(e.target.value)}
-            />
-          </div>
+        <section className="reservar-card reservar-form-card" aria-label="Seleccionar horario">
+          <h2>Selecciona tu horario</h2>
+          {diasDisponibles.length > 0 ? (
+            <div className="formulario-reserva">
+              <div className="form-grid">
+                <div className="form-group form-group--full">
+                  <label htmlFor="dia">Día de la semana</label>
+                  <select
+                    id="dia"
+                    className="form-control"
+                    value={diaSeleccionado}
+                    onChange={(e) => setDiaSeleccionado(e.target.value)}
+                  >
+                    <option value="">Seleccione un día...</option>
+                    {diasDisponibles.map((dia) => (
+                      <option key={dia} value={dia}>
+                        {dia.charAt(0).toUpperCase() + dia.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          <button
-            className="btn-reservar"
-            onClick={handleReservar}
-          >
-            Confirmar Reserva
-          </button>
-        </div>
-      ) : (
-        <p>No hay días disponibles para este espacio.</p>
-      )}
+                <div className="form-group">
+                  <label htmlFor="horaInicio">Hora de inicio</label>
+                  <input
+                    id="horaInicio"
+                    type="time"
+                    className="form-control"
+                    value={horaInicio}
+                    onChange={(e) => setHoraInicio(e.target.value)}
+                  />
+                </div>
 
-      {mensajeError && <p className="error-message">{mensajeError}</p>}
+                <div className="form-group">
+                  <label htmlFor="horaFin">Hora de fin</label>
+                  <input
+                    id="horaFin"
+                    type="time"
+                    className="form-control"
+                    value={horaFin}
+                    onChange={(e) => setHoraFin(e.target.value)}
+                  />
+                </div>
+              </div>
 
-      {horariosOcupados.map((reserva, index) => {
-        const diaSemana = reserva.HorarioDisponible?.dia_semana || "N/A";
-        return (
-          <li key={index}>
-            <span className="dia-badge">
-              {diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}
-            </span>
-            <span className="horario-info">
-              <strong> {reserva.hora_inicio} </strong> a <strong> {reserva.hora_fin} </strong>
-            </span>
-            {reserva.estado && <span className="badge-estado">{reserva.estado}</span>}
-          </li>
-        );
-      })}
-      
+              <div className="resumen-reserva" aria-live="polite">
+                <span className="resumen-label">Resumen:</span>
+                <span className="resumen-value">
+                  {diaSeleccionado ? diaSeleccionado.charAt(0).toUpperCase() + diaSeleccionado.slice(1) : "(sin día)"}
+                  {horaInicio && horaFin ? ` · ${horaInicio}–${horaFin}` : " · (sin horas)"}
+                </span>
+              </div>
+
+              <button className="btn-reservar" onClick={handleReservar}>
+                Confirmar reserva
+              </button>
+
+              {mensajeError && <p className="error-message">{mensajeError}</p>}
+            </div>
+          ) : (
+            <p className="empty-state">No hay días disponibles para este espacio.</p>
+          )}
+
+          {horariosOcupados.length > 0 && (
+            <div className="ocupados">
+              <h3>Horarios ocupados</h3>
+              <ul className="ocupados-list">
+                {horariosOcupados.map((reserva, index) => {
+                  const diaSemana = reserva.HorarioDisponible?.dia_semana || "N/A";
+                  return (
+                    <li key={index} className="ocupado-item">
+                      <span className="dia-badge">
+                        {diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}
+                      </span>
+                      <span className="horario-info">
+                        <strong>{reserva.hora_inicio}</strong>–<strong>{reserva.hora_fin}</strong>
+                      </span>
+                      {reserva.estado && (
+                        <span className="badge-estado">{reserva.estado}</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

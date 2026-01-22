@@ -47,7 +47,11 @@
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  stroke: rgba(15, 23, 36, 0.55);
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   pointer-events: none;
 }
 

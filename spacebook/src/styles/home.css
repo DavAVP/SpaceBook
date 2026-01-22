@@ -34,6 +34,7 @@
 }
 
 .espacios-grid h2 {
+  grid-column: 1 / -1;
   text-align: center;
   font-size: 2rem;
   margin-bottom: 40px;
@@ -48,7 +49,10 @@
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
-  padding-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 460px;
 }
 
 .espacio-card:hover {
@@ -58,8 +62,46 @@
 
 .espacios-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  /* Distribución controlada (2→3→4→5) para mejor simetría */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 25px;
+  align-items: stretch;
+}
+
+/* En móvil, mantener 2 columnas pero con menos espacio */
+@media (max-width: 640px) {
+  .espacios-grid {
+    padding: 18px 14px;
+    border-top-left-radius: 26px;
+    border-top-right-radius: 26px;
+    gap: 14px;
+  }
+
+  .espacio-card {
+    min-height: 0;
+  }
+
+  .espacio-imagen {
+    height: 140px;
+  }
+}
+
+@media (min-width: 900px) {
+  .espacios-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .espacios-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .espacios-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 
@@ -73,8 +115,14 @@
 
 .espacio-card h3 {
   font-size: 1.2rem;
-  margin-top: 12px;
+  margin: 18px 0 10px;
+  padding: 0 15px;
   color: var(--primary-600);
+  /* Para que todas las cards mantengan altura similar */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .espacio-card p {
@@ -84,10 +132,62 @@
   line-height: 1.4;
 }
 
+/* Evita cards "infinitas" por descripciones largas */
+.espacio-card .espacio-descripcion {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .espacio-card .ubicacion {
   font-style: italic;
   color: #666;
-  margin-top: 5px;
+  margin: 10px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botón siempre al fondo para simetría */
+.espacio-card .reservar-button,
+.espacio-card .admin-actions {
+  margin-top: auto;
+}
+
+/* Acciones admin dentro de la card (Editar / Eliminar) */
+.espacio-card .admin-actions {
+  display: flex;
+  gap: 12px;
+  padding: 14px 15px 15px;
+}
+
+.espacio-card .admin-actions .btn {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.reservar-button {
+  margin: 14px 15px 15px;
+  width: calc(100% - 30px);
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  color: var(--on-primary);
+  background: linear-gradient(90deg, var(--accent), var(--primary));
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.reservar-button:hover {
+  filter: brightness(0.98);
+}
+
+.reservar-button:active {
+  transform: translateY(1px);
 }
 
 button {
@@ -106,5 +206,9 @@ button {
 
   .espacio-imagen {
     height: 150px;
+  }
+
+  .espacio-card {
+    min-height: 0;
   }
 }

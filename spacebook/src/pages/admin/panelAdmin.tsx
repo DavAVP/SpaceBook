@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { IEspacio } from "../../interfaces/Espacio";
 import { EspacioService } from "../../services/espacio.service";
 import "../../styles/home.css"
+import "../../styles/admin.css";
 import { useUser } from "../../context/usuario.context";
 import { toast } from "react-toastify";
 
@@ -27,9 +28,11 @@ const PanelAdmin: React.FC = () => {
     // Verificar si el usuario es admin
     if (!user?.is_admin) {
         return (
-            <div className="container mt-5">
-                <div className="alert alert-danger">
-                    No tienes permiso para acceder a esta página
+            <div className="admin-page">
+                <div className="container mt-5">
+                    <div className="alert alert-danger">
+                        No tienes permiso para acceder a esta página
+                    </div>
                 </div>
             </div>
         );
@@ -49,7 +52,7 @@ const PanelAdmin: React.FC = () => {
     
 
     return(
-        <div>
+        <div className="admin-page admin-panel">
             <div className="home-page">
                 <h1> Bienvenido a panel del admin </h1>
                 <p> El sitio donde nunca perderás tiempo por una reservacion!</p>
@@ -66,20 +69,24 @@ const PanelAdmin: React.FC = () => {
                     <div key={espacio.id_espacio} className="espacio-card">
                             <img src={espacio.foto_url || 'https://placehold.co/150x150'} alt={espacio.nombre_lugar} className="espacio-imagen" />
                         <h3>{espacio.nombre_lugar}</h3>
-                        <p>{espacio.descripcion}</p>
+                        <p className="espacio-descripcion">{espacio.descripcion}</p>
                         <p className="ubicacion">
                             <em>{espacio.ubicacion}</em>
                         </p>
-                        <button
-                        onClick={() => navigate(`/admin/editar-espacios/${espacio.id_espacio}`)}
-                        >
-                            editar
-                        </button>
-                        <button
-                        onClick={() => eliminarEspacio(espacio.id_espacio, espacio.id_espacio)}
-                        >
-                            eliminar
-                        </button>
+                        <div className="admin-actions">
+                            <button
+                              className="btn btn-secondary"
+                              onClick={() => navigate(`/admin/editar-espacios/${espacio.id_espacio}`)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              className="btn btn-danger"
+                              onClick={() => eliminarEspacio(espacio.id_espacio, espacio.id_espacio)}
+                            >
+                              Eliminar
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

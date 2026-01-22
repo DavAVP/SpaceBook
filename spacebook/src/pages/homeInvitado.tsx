@@ -62,7 +62,7 @@ const HomeInvitado: React.FC = () => {
                             className="espacio-imagen" 
                         />
                         <h3>{espacio.nombre_lugar}</h3>
-                        <p>{espacio.descripcion}</p>
+                        <p className="espacio-descripcion">{espacio.descripcion}</p>
                         <p className="ubicacion"><em>{espacio.ubicacion}</em></p>
                         <button 
                             className="reservar-button" 

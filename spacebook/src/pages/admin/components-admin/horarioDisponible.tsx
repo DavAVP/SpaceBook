@@ -70,7 +70,7 @@ export default function AgregarHorario({ idEspacio, onFinish }: Props) {
     };
 
     return (
-        <div className="mt-4 p-3 border rounded">
+        <div className="admin-card admin-horario-card">
             <h4>Configurar Días Disponibles del Espacio</h4>
             <p className="text-muted">Selecciona los días en que este espacio estará disponible para reservas</p>
             
