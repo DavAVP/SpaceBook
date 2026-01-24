@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { EspacioService } from "../../services/espacio.service";
 import { StorageService } from "../../services/storage.service";
 import { UserContext } from "../../context/usuario.context";
 import EditarHorarios from "./components-admin/EditarHorarios";
+import { CategoriaService } from "../../services/categoria.service";
+import type { ICategoria } from "../../interfaces/Categoria";
 import "../../styles/editarEspacios.css";
 import "../../styles/admin.css";
 
@@ -45,6 +47,8 @@ export default function EditarEspacios() {
     const { user } = useContext(UserContext);
     const [mensaje, setMensaje] = useState("");
     const [error, setError] = useState("");
+    const [categorias, setCategorias] = useState<ICategoria[]>([]);
+    const [categoriasCargando, setCategoriasCargando] = useState(true);
 
     const [formData, setFormData] = useState({
         nombre_lugar: '',
@@ -75,6 +79,39 @@ export default function EditarEspacios() {
 
     cargarEspacio();
   }, [id]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const cargarCategorias = async () => {
+      setCategoriasCargando(true);
+      try {
+        const data = await CategoriaService.obtenerCategorias();
+        if (!mounted) return;
+        const ordenadas = [...data].sort((a, b) => a.nombre.localeCompare(b.nombre));
+        setCategorias(ordenadas);
+      } catch (err) {
+        console.error('[EditarEspacios] Error cargando categorías:', err);
+        if (mounted) setCategorias([]);
+      } finally {
+        if (mounted) setCategoriasCargando(false);
+      }
+    };
+
+    cargarCategorias();
+    return () => { mounted = false; };
+  }, []);
+
+  const categoriaOpciones = useMemo(() => {
+    const nombres = new Set<string>();
+    categorias.forEach(cat => {
+      if (cat.nombre) nombres.add(cat.nombre);
+    });
+    if (formData.tipo) {
+      nombres.add(formData.tipo);
+    }
+    return Array.from(nombres).sort((a, b) => a.localeCompare(b));
+  }, [categorias, formData.tipo]);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -135,13 +172,27 @@ export default function EditarEspacios() {
             <label htmlFor="descripcion">Descripción</label>
             <textarea id="descripcion" className="form-control mb-2" name="descripcion" value={formData.descripcion} onChange={handleChange} required />
 
-            <label htmlFor="tipo">Tipo</label>
-            <select id="tipo" className="form-control mb-2" name="tipo" value={formData.tipo} onChange={handleChange} required>
-              <option value="aula">Aula</option>
-              <option value="laboratorio">Laboratorio</option>
-              <option value="auditorio">Auditorio</option>
-              <option value="sala">Sala de Reuniones</option>
+            <label htmlFor="tipo">Tipo de Espacio</label>
+            <select
+              id="tipo"
+              className="form-control mb-2"
+              name="tipo"
+              value={formData.tipo}
+              onChange={handleChange}
+              required
+              disabled={categoriasCargando && categoriaOpciones.length === 0}
+            >
+              <option value="">
+                {categoriasCargando && categoriaOpciones.length === 0 ? 'Cargando categorías...' : 'Seleccione una categoría'}
+              </option>
+              {categoriaOpciones.map(nombre => (
+                <option key={nombre} value={nombre}>{nombre}</option>
+              ))}
             </select>
+
+            {!categoriasCargando && categoriaOpciones.length === 0 && (
+              <small className="text-muted">No hay categorías disponibles todavía. Crea nuevas desde "Subir Espacios".</small>
+            )}
 
             <label htmlFor="ubicacion">Ubicación</label>
             <input id="ubicacion" className="form-control mb-2" name="ubicacion" value={formData.ubicacion} onChange={handleChange} required />

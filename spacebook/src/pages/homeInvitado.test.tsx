@@ -8,6 +8,11 @@ vi.mock('../services/espacio.service', () => ({
     ObtenerEspacios: vi.fn().mockResolvedValue([]),
   },
 }));
+vi.mock('../services/categoria.service', () => ({
+  CategoriaService: {
+    obtenerCategorias: vi.fn().mockResolvedValue([]),
+  },
+}));
 
 describe('HomeInvitado', () => {
   it('muestra el mensaje de bienvenida', async () => {

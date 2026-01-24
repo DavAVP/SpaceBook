@@ -1,5 +1,6 @@
 import { supabase } from "../api/supabase.config";
 import { toast } from "react-toastify";
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
 export const AuthService = {
     supabase,
@@ -29,7 +30,7 @@ export const AuthService = {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: 'http://localhost:4173/home'
+                    emailRedirectTo: `${FRONTEND_URL}/home`
                 }
             })
             if(error){

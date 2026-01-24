@@ -145,6 +145,10 @@ async function purgeSubscriptions(endpoints = []) {
 }
 
 async function dispatchNotifications(subscriptions = [], payload) {
+    if (webPush && webPush.enabled === false) {
+        return { sent: 0, attempted: 0, disabled: true };
+    }
+
     const { valid, invalidEndpoints } = splitValidSubscriptions(subscriptions);
 
     if (invalidEndpoints.length) await purgeSubscriptions(invalidEndpoints);
@@ -293,6 +297,85 @@ router.post("/subscription/remove", async (req, res) => {
     }
 
     return res.json({ removed: data?.length || 0 });
+});
+
+// Admin: resolver perfiles (nombre/email) por IDs
+router.post("/admin/user-profiles", async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+
+        if (!token) {
+            return res.status(401).json({ error: "Falta Authorization Bearer token" });
+        }
+
+        const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+        if (userErr || !userData?.user) {
+            return res.status(401).json({ error: "Token inválido" });
+        }
+
+        const requesterId = userData.user.id;
+        const { data: requesterProfile, error: requesterProfileErr } = await supabase
+            .from("profiles")
+            .select("is_admin")
+            .eq("id", requesterId)
+            .single();
+
+        if (requesterProfileErr) {
+            console.error("Error consultando perfil admin", requesterProfileErr);
+            return res.status(500).json({ error: "No se pudo validar permisos" });
+        }
+
+        if (!requesterProfile?.is_admin) {
+            return res.status(403).json({ error: "No autorizado" });
+        }
+
+        const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
+        const uniqueIds = Array.from(new Set(ids.map((x) => String(x || "").trim()))).filter(Boolean);
+        if (uniqueIds.length === 0) return res.json({ data: [] });
+
+        const { data: profiles, error: profilesErr } = await supabase
+            .from("profiles")
+            .select("id, nombre")
+            .in("id", uniqueIds);
+
+        if (profilesErr) {
+            console.error("Error obteniendo profiles", profilesErr);
+            return res.status(500).json({ error: "No se pudieron obtener perfiles" });
+        }
+
+        const profileById = new Map();
+        for (const p of profiles || []) profileById.set(p.id, p);
+
+        const authUsers = await Promise.all(
+            uniqueIds.map(async (id) => {
+                try {
+                    const { data, error } = await supabase.auth.admin.getUserById(id);
+                    if (error) return { id, email: null };
+                    return { id, email: data?.user?.email || null };
+                } catch {
+                    return { id, email: null };
+                }
+            })
+        );
+
+        const emailById = new Map();
+        for (const u of authUsers) emailById.set(u.id, u.email);
+
+        const result = uniqueIds.map((id) => {
+            const p = profileById.get(id);
+            return {
+                id,
+                nombre: p?.nombre || null,
+                email: emailById.get(id) || null,
+            };
+        });
+
+        return res.json({ data: result });
+    } catch (error) {
+        console.error("Error /admin/user-profiles:", error);
+        return res.status(500).json({ error: "Error interno" });
+    }
 });
 // Exportar el router
 module.exports = router;

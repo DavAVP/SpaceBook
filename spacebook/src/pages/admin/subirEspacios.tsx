@@ -1,8 +1,10 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { EspacioService } from "../../services/espacio.service";
 import { UserContext } from '../../context/usuario.context';
 import { StorageService } from "../../services/storage.service";
+import { CategoriaService } from "../../services/categoria.service";
+import type { ICategoria } from "../../interfaces/Categoria";
 import "../../styles/espacios.css";
 import "../../styles/admin.css";
 import AgregarHorario from "./components-admin/horarioDisponible";
@@ -45,6 +47,18 @@ export default function SubirEspacios() {
     const [mensaje, setMensaje] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [idCreado, setIdCreado] = useState<string | null>(null);
+    const [categorias, setCategorias] = useState<ICategoria[]>([]);
+    const [categoriasCargando, setCategoriasCargando] = useState(true);
+    const [categoriaError, setCategoriaError] = useState<string>('');
+    const [categoriaMensaje, setCategoriaMensaje] = useState<string>('');
+    const [categoriaForm, setCategoriaForm] = useState({
+        nombre: '',
+        descripcion: ''
+    });
+    const [mostrarGestionCategorias, setMostrarGestionCategorias] = useState(false);
+    const [categoriaEditando, setCategoriaEditando] = useState<ICategoria | null>(null);
+    const [guardandoCategoria, setGuardandoCategoria] = useState(false);
+    const [categoriaEliminando, setCategoriaEliminando] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         nombre_lugar: '',
@@ -75,6 +89,159 @@ export default function SubirEspacios() {
             ...prev,
             [name]: value
         }));
+    };
+
+    useEffect(() => {
+        let mounted = true;
+
+        const cargarCategorias = async () => {
+            setCategoriasCargando(true);
+            try {
+                const data = await CategoriaService.obtenerCategorias();
+                if (!mounted) return;
+                const ordenadas = [...data].sort((a, b) => a.nombre.localeCompare(b.nombre));
+                setCategorias(ordenadas);
+            } catch (err) {
+                console.error('Error cargando categorías', err);
+                if (mounted) setCategorias([]);
+            } finally {
+                if (mounted) setCategoriasCargando(false);
+            }
+        };
+
+        cargarCategorias();
+        return () => { mounted = false; };
+    }, []);
+
+    const handleCategoriaInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setCategoriaError('');
+        setCategoriaMensaje('');
+        setCategoriaForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const resetFormularioCategoria = () => {
+        setCategoriaForm({ nombre: '', descripcion: '' });
+        setCategoriaEditando(null);
+    };
+
+    const cerrarGestionCategorias = () => {
+        setMostrarGestionCategorias(false);
+        setCategoriaError('');
+        setCategoriaMensaje('');
+        resetFormularioCategoria();
+    };
+
+    const handleGuardarCategoria = async () => {
+        const nombre = categoriaForm.nombre.trim();
+        const descripcion = categoriaForm.descripcion.trim();
+        setCategoriaError('');
+        setCategoriaMensaje('');
+
+        if (!nombre) {
+            setCategoriaError('Ingresa un nombre para la categoría.');
+            return;
+        }
+
+        const existe = categorias.some(cat => {
+            if (categoriaEditando && cat.id_categoria === categoriaEditando.id_categoria) {
+                return false;
+            }
+            return cat.nombre.toLowerCase() === nombre.toLowerCase();
+        });
+        if (existe) {
+            setCategoriaError('Ya existe una categoría con ese nombre.');
+            return;
+        }
+
+        setGuardandoCategoria(true);
+        try {
+            if (categoriaEditando) {
+                const actualizada = await CategoriaService.actualizarCategoria(categoriaEditando.id_categoria, { nombre, descripcion });
+                if (!actualizada) {
+                    setCategoriaError('No se pudo actualizar la categoría.');
+                    return;
+                }
+
+                setCategorias(prev => prev
+                    .map(cat => cat.id_categoria === actualizada.id_categoria ? actualizada : cat)
+                    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                );
+                if (formData.tipo === categoriaEditando.nombre) {
+                    setFormData(prev => ({ ...prev, tipo: actualizada.nombre }));
+                }
+                setCategoriaMensaje('Categoría actualizada correctamente.');
+            } else {
+                const nuevaCategoria = await CategoriaService.crearCategoria({ nombre, descripcion });
+                if (!nuevaCategoria) {
+                    setCategoriaError('No se pudo crear la categoría.');
+                    return;
+                }
+
+                setCategorias(prev => [...prev, nuevaCategoria].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+                setFormData(prev => ({ ...prev, tipo: nuevaCategoria.nombre }));
+                setCategoriaMensaje('Categoría creada correctamente.');
+            }
+
+            resetFormularioCategoria();
+        } catch (err) {
+            console.error('Error creando categoría', err);
+            setCategoriaError('Error inesperado al guardar la categoría.');
+        } finally {
+            setGuardandoCategoria(false);
+        }
+    };
+
+    const handleEditarCategoria = (categoria: ICategoria) => {
+        setMostrarGestionCategorias(true);
+        setCategoriaEditando(categoria);
+        setCategoriaForm({
+            nombre: categoria.nombre,
+            descripcion: categoria.descripcion ?? '',
+        });
+        setCategoriaError('');
+        setCategoriaMensaje('');
+    };
+
+    const handleEliminarCategoria = async (categoria: ICategoria) => {
+        if (!window.confirm(`¿Eliminar la categoría "${categoria.nombre}"?`)) {
+            return
+        }
+
+        setCategoriaError('');
+        setCategoriaMensaje('');
+        setCategoriaEliminando(categoria.id_categoria);
+
+        try {
+            const eliminado = await CategoriaService.eliminarCategoria(categoria.id_categoria);
+            if (!eliminado) {
+                setCategoriaError('No se pudo eliminar la categoría.');
+                return;
+            }
+
+            setCategorias(prev => prev
+                .filter(cat => cat.id_categoria !== categoria.id_categoria)
+                .sort((a, b) => a.nombre.localeCompare(b.nombre))
+            );
+
+            if (formData.tipo === categoria.nombre) {
+                setFormData(prev => ({ ...prev, tipo: '' }));
+            }
+
+            if (categoriaEditando && categoriaEditando.id_categoria === categoria.id_categoria) {
+                resetFormularioCategoria();
+            }
+
+            setCategoriaMensaje('Categoría eliminada correctamente.');
+        } catch (err) {
+            console.error('Error eliminando categoría', err);
+            setCategoriaError('Error inesperado al eliminar la categoría.');
+        } finally {
+            setCategoriaEliminando(null);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -177,20 +344,139 @@ export default function SubirEspacios() {
 
                         <div className="mb-3">
                             <label htmlFor="tipo" className="form-label">Tipo de Espacio</label>
-                            <select
-                                className="form-control"
-                                id="tipo"
-                                name="tipo"
-                                value={formData.tipo}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <option value="">Seleccione un tipo</option>
-                                <option value="aula">Aula</option>
-                                <option value="laboratorio">Laboratorio</option>
-                                <option value="auditorio">Auditorio</option>
-                                <option value="sala">Sala de Reuniones</option>
-                            </select>
+                            <div className="category-select">
+                                <div className="category-select__control">
+                                    <select
+                                        className="form-control"
+                                        id="tipo"
+                                        name="tipo"
+                                        value={formData.tipo}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="">
+                                            {categoriasCargando ? 'Cargando categorías...' : 'Seleccione una categoría'}
+                                        </option>
+                                        {categorias.map((categoria) => (
+                                            <option key={categoria.id_categoria} value={categoria.nombre}>
+                                                {categoria.nombre}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        className="category-select__toggle"
+                                        onClick={() => {
+                                            if (mostrarGestionCategorias) {
+                                                cerrarGestionCategorias();
+                                            } else {
+                                                setMostrarGestionCategorias(true);
+                                                setCategoriaError('');
+                                                setCategoriaMensaje('');
+                                                resetFormularioCategoria();
+                                            }
+                                        }}
+                                    >
+                                        {mostrarGestionCategorias ? 'Ocultar gestión de categorías' : 'Gestionar categorías'}
+                                    </button>
+                                </div>
+                                {!categoriasCargando && categorias.length === 0 && (
+                                    <small className="category-select__hint">
+                                        Crea una categoría para poder asignarla al espacio.
+                                    </small>
+                                )}
+                                {mostrarGestionCategorias && (
+                                    <div className="category-select__form">
+                                        <div className="mb-2">
+                                            <label htmlFor="categoria-nombre" className="form-label">Nombre</label>
+                                            <input
+                                                id="categoria-nombre"
+                                                name="nombre"
+                                                type="text"
+                                                className="form-control"
+                                                value={categoriaForm.nombre}
+                                                onChange={handleCategoriaInputChange}
+                                                placeholder="Ej. Laboratorio"
+                                            />
+                                        </div>
+                                        <div className="mb-2">
+                                            <label htmlFor="categoria-descripcion" className="form-label">Descripción (opcional)</label>
+                                            <textarea
+                                                id="categoria-descripcion"
+                                                name="descripcion"
+                                                className="form-control"
+                                                value={categoriaForm.descripcion}
+                                                onChange={handleCategoriaInputChange}
+                                                rows={2}
+                                            />
+                                        </div>
+                                        {categoriaError && (
+                                            <div className="alert alert-danger py-2" role="alert">
+                                                {categoriaError}
+                                            </div>
+                                        )}
+                                        {categoriaMensaje && (
+                                            <div className="alert alert-success py-2" role="alert">
+                                                {categoriaMensaje}
+                                            </div>
+                                        )}
+                                        <div className="category-select__actions">
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary"
+                                                onClick={handleGuardarCategoria}
+                                                disabled={guardandoCategoria}
+                                            >
+                                                {guardandoCategoria
+                                                    ? 'Guardando...'
+                                                    : categoriaEditando
+                                                        ? 'Actualizar categoría'
+                                                        : 'Crear categoría'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary"
+                                                onClick={cerrarGestionCategorias}
+                                                disabled={guardandoCategoria}
+                                            >
+                                                Cerrar
+                                            </button>
+                                        </div>
+                                        {categorias.length > 0 && (
+                                            <ul className="category-select__list">
+                                                {categorias.map((categoria) => (
+                                                    <li key={categoria.id_categoria} className="category-select__item">
+                                                        <div className="category-select__item-info">
+                                                            <strong>{categoria.nombre}</strong>
+                                                            {categoria.descripcion && (
+                                                                <p>{categoria.descripcion}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className="category-select__item-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-secondary btn-sm"
+                                                                onClick={() => handleEditarCategoria(categoria)}
+                                                                disabled={guardandoCategoria || categoriaEliminando === categoria.id_categoria}
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-danger btn-sm"
+                                                                onClick={() => handleEliminarCategoria(categoria)}
+                                                                disabled={categoriaEliminando === categoria.id_categoria}
+                                                            >
+                                                                {categoriaEliminando === categoria.id_categoria ? 'Eliminando...' : 'Eliminar'}
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="mb-3">

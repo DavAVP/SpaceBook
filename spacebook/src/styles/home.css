@@ -41,6 +41,63 @@
   color: var(--primary-600);
 }
 
+.catalog-toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.catalog-toolbar h2 {
+  margin: 0;
+  text-align: left;
+  font-size: 2rem;
+  color: var(--primary-600);
+}
+
+.catalog-toolbar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  min-width: 200px;
+}
+
+.catalog-toolbar__label {
+  font-weight: 600;
+  color: var(--primary-600);
+  font-size: 0.95rem;
+}
+
+.catalog-toolbar__select {
+  width: 240px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(32, 58, 107, 0.18);
+  background: var(--card-bg);
+  color: var(--text-dark);
+  font-family: "Poppins", sans-serif;
+  font-size: 1rem;
+  box-shadow: 0 6px 14px rgba(32, 58, 107, 0.08);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.catalog-toolbar__select:focus {
+  outline: none;
+  border-color: rgba(32, 58, 107, 0.55);
+  box-shadow: 0 0 0 4px rgba(108, 195, 213, 0.25);
+}
+
+.catalog-toolbar__select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 
 .espacio-card {
   background-color: var(--card-bg);
@@ -77,6 +134,15 @@
     gap: 14px;
   }
 
+  .catalog-toolbar {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .catalog-toolbar__select {
+    width: 100%;
+  }
+
   .espacio-card {
     min-height: 0;
   }
@@ -110,6 +176,19 @@
   height: 180px;
   object-fit: cover;
   border-bottom: 4px solid var(--primary);
+}
+
+.espacio-card .espacio-categoria {
+  align-self: flex-start;
+  margin: 12px 15px 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(32, 58, 107, 0.12);
+  color: var(--primary-600);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 
@@ -167,6 +246,17 @@
   flex: 1;
   margin: 0;
   min-width: 0;
+}
+
+.no-espacios {
+  grid-column: 1 / -1;
+  padding: 26px;
+  border-radius: 16px;
+  border: 1px solid rgba(32, 58, 107, 0.12);
+  background: rgba(32, 58, 107, 0.05);
+  color: var(--muted);
+  font-weight: 500;
+  text-align: center;
 }
 
 .reservar-button {

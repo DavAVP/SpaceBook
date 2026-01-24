@@ -13,6 +13,11 @@ vi.mock('../../services/espacio.service', () => ({
     EliminarEspacio: vi.fn().mockResolvedValue(true),
   },
 }));
+vi.mock('../../services/categoria.service', () => ({
+  CategoriaService: {
+    obtenerCategorias: vi.fn().mockResolvedValue([]),
+  },
+}));
 
 describe('PanelAdmin', () => {
   it('muestra el título y botón de crear espacio', async () => {

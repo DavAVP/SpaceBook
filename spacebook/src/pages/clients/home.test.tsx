@@ -7,6 +7,12 @@ vi.mock('../../services/espacio.service', () => ({
   }
 }))
 
+vi.mock('../../services/categoria.service', () => ({
+  CategoriaService: {
+    obtenerCategorias: vi.fn().mockResolvedValue([])
+  }
+}))
+
 vi.mock('../../context/usuario.context', () => ({
   useUser: () => ({ user: null, loading: false })
 }))

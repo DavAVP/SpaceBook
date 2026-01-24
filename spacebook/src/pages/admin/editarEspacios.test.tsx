@@ -12,6 +12,14 @@ vi.mock('../../services/espacio.service', () => ({
     ActualizarEspacio: vi.fn().mockResolvedValue(true),
   },
 }));
+vi.mock('../../services/categoria.service', () => ({
+  CategoriaService: {
+    obtenerCategorias: vi.fn().mockResolvedValue([
+      { id_categoria: 'cat-1', nombre: 'aula' },
+      { id_categoria: 'cat-2', nombre: 'laboratorio' },
+    ]),
+  },
+}));
 
 const fakeUser = {
   is_admin: true,
@@ -34,7 +42,7 @@ describe('EditarEspacios', () => {
     expect(await screen.findByText(/Editar Espacio/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Nombre del Lugar/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Descripción/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Tipo de Espacio/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Ubicación/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Capacidad/i)).toBeInTheDocument();
   });
