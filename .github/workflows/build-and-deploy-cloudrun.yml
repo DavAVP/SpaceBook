@@ -40,17 +40,16 @@ jobs:
 
       - name: Build Docker image
         run: |
-          IMAGE=us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/spacebook-repo/${{ env.SERVICE }}:${{ github.sha }}
-          docker build -t $IMAGE ./spacebook
+          docker build -t us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/spacebook-repo/${{ env.SERVICE }}:${{ github.sha }} ./spacebook
 
       - name: Push image to Artifact Registry
         run: |
-          docker push $IMAGE
+          docker push us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/spacebook-repo/${{ env.SERVICE }}:${{ github.sha }}
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE }} \
-            --image $IMAGE \
+            --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/spacebook-repo/${{ env.SERVICE }}:${{ github.sha }} \
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated
