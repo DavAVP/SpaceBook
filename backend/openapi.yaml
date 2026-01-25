@@ -1,0 +1,290 @@
+openapi: 3.0.3
+info:
+  title: SpaceBook Notifications API
+  version: 1.0.0
+  description: |
+    API REST del backend de SpaceBook para gestionar suscripciones y notificaciones push.
+servers:
+  - url: http://localhost:8080
+    description: Desarrollo local
+  - url: https://spacebook-api.example.com
+    description: Producción (placeholder)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PushKeys:
+      type: object
+      required:
+        - p256dh
+        - auth
+      properties:
+        p256dh:
+          type: string
+          description: Clave pública del cliente codificada en base64 URL-safe.
+        auth:
+          type: string
+          description: Clave auth del cliente codificada en base64 URL-safe.
+    PushSubscriptionInput:
+      type: object
+      required:
+        - endpoint
+        - keys
+      properties:
+        endpoint:
+          type: string
+          format: uri
+          description: Endpoint de Web Push devuelto por el navegador.
+        keys:
+          $ref: '#/components/schemas/PushKeys'
+        userId:
+          type: string
+          nullable: true
+          description: Identificador del usuario autenticado en Supabase.
+        role:
+          type: string
+          enum:
+            - admin
+            - cliente
+          description: Rol asociado a la suscripción. Se normaliza en el servidor.
+    NewMessageRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Contenido visible en la notificación.
+        title:
+          type: string
+          default: SpaceBook
+          description: Título de la notificación.
+        role:
+          type: string
+          nullable: true
+          enum:
+            - admin
+            - cliente
+          description: Rol destinatario. Si se omite, se intenta usar userId.
+        userId:
+          type: string
+          nullable: true
+          description: Identificador único para enviar la notificación a un usuario específico.
+    RemoveSubscriptionRequest:
+      type: object
+      required:
+        - endpoint
+      properties:
+        endpoint:
+          type: string
+          format: uri
+          description: Endpoint a eliminar.
+    AdminUserProfilesRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+          description: Lista de IDs de Supabase a resolver.
+    AdminUserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+paths:
+  /subscription:
+    post:
+      summary: Crea o actualiza una suscripción push.
+      tags: [Subscriptions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushSubscriptionInput'
+      responses:
+        '200':
+          description: Suscripción registrada correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Datos incompletos o inválidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Error interno al guardar la suscripción.
+  /subscription/remove:
+    post:
+      summary: Elimina una suscripción por endpoint.
+      tags: [Subscriptions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveSubscriptionRequest'
+      responses:
+        '200':
+          description: Endpoint eliminado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  removed:
+                    type: integer
+                    description: Número de registros eliminados.
+        '400':
+          description: Falta el endpoint.
+        '500':
+          description: Error al eliminar la suscripción.
+  /subscriptions:
+    get:
+      summary: Lista endpoints registrados con metadatos básicos.
+      tags: [Subscriptions]
+      responses:
+        '200':
+          description: Colección de suscripciones registradas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    endpoint:
+                      type: string
+                    role:
+                      type: string
+                    user_id:
+                      type: string
+                      nullable: true
+  /new-message:
+    post:
+      summary: Envía una notificación general.
+      description: Envía notificaciones push a usuarios filtrados por rol o userId.
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMessageRequest'
+      responses:
+        '200':
+          description: Notificaciones procesadas correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sent:
+                    type: integer
+        '400':
+          description: Falta el mensaje o filtros inválidos.
+        '500':
+          description: Error al enviar las notificaciones.
+  /new-reservation-admin:
+    post:
+      summary: Envía notificación de nueva reserva a administradores.
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                title:
+                  type: string
+                  default: Nueva Reserva
+      responses:
+        '200':
+          description: Notificaciones enviadas.
+        '400':
+          description: Falta el mensaje o no hay administradores suscritos.
+        '500':
+          description: Error interno.
+  /new-penalization-admin:
+    post:
+      summary: Envía notificación de penalización a administradores.
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                title:
+                  type: string
+                  default: SpaceBook - Penalización
+      responses:
+        '200':
+          description: Notificaciones enviadas.
+        '400':
+          description: Falta el mensaje o no hay administradores suscritos.
+        '500':
+          description: Error interno.
+  /admin/user-profiles:
+    post:
+      summary: Obtiene datos básicos de perfiles por ID (solo admins).
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserProfilesRequest'
+      responses:
+        '200':
+          description: Datos de perfiles encontrados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminUserProfile'
+        '401':
+          description: Token ausente o inválido.
+        '403':
+          description: Usuario autenticado sin privilegios de administrador.
+        '500':
+          description: Error interno al consultar perfiles.
