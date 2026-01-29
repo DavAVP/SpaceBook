@@ -78,9 +78,15 @@ npm install
 - Backend: `npm test` (Jest + Supertest).
 
 ## Flujo CI/CD y ramas
-- Estrategia GitHub Flow: crear branches por feature o fix desde `main`, abrir Pull Request con revisiones y mergear tras aprobar y pasar pipelines.
-- El workflow [Full CI/CD (Frontend + Backend)](.github/workflows/node.js.yml) ejecuta lint/test/build en cada push/PR.
-- Tras éxito, `main` despliega automáticamente: Vercel como producción primaria, Azure Static Web Apps como staging estable y Cloud Run como despliegue contenedorizado alternativo.
+- **Estrategia GitHub Flow**
+	1. Crea una rama descriptiva (`feature/<feature>`, `fix/<issue>`) desde `main`.
+	2. Commits pequeños y con mensajes en imperativo.
+	3. Abre un Pull Request hacia `main`, solicita revisión y verifica que GitHub Actions quede en verde.
+	4. Mergea con `squash` o `rebase` cuando la revisión y los pipelines aprueban; elimina la rama.
+	5. Etiqueta la versión si procede y sigue con el siguiente feature.
+- **Automatización**: el workflow [Full CI/CD (Frontend + Backend)](.github/workflows/node.js.yml) ejecuta lint/test/build en cada push/PR.
+- **Staging automatizado**: el workflow [Azure Static Web Apps CI/CD](../.github/workflows/azure-static-web-apps-nice-pond-0cf73d20f.yml) se activa con la rama `staging` y publica automáticamente en la Static Web App `nice-pond-0cf73d20f`. Ese despliegue sirve como entorno de staging para QA; cuando se valida, se fusiona `staging` → `main` para promover a producción.
+- **Producción**: tras validar en staging, el job `deploy_frontend` del workflow principal publica en Vercel; el job [Build and Deploy to Cloud Run](../.github/workflows/build-and-deploy-cloudrun.yml) mantiene el contenedor alternativo.
 
 ## Monitoreo, métricas y registros
 - Frontend: revisar logs de Azure Static Web Apps y Cloud Run (Cloud Logging) para errores en runtime; Vercel y Render ofrecen dashboards con métricas básicas.
@@ -88,9 +94,10 @@ npm install
 - Alertas manuales: configurar notificaciones en cada plataforma (Render, Azure, Google Cloud) para fallos de despliegue o errores 5xx.
 
 ## Respaldo y rollback
-- Supabase mantiene backups automáticos; generar exports periódicos desde la consola antes de cambios significativos.
-- Configuración de entorno: variables gestionadas en Render/Azure/Cloud Run; exportar snapshots antes de ediciones críticas.
-- Rollback de despliegues: en Vercel/Azure/Cloud Run se puede promover el deployment anterior o redeployar un commit previo vía GitHub Actions.
+- **Base de datos Supabase**: habilita el backup automático en el panel del proyecto y registra un recordatorio semanal para exportar un dump `.sql` manual (almacenado en una carpeta privada de OneDrive/Drive). Mantén al menos los últimos 3 dumps.
+- **Artefactos frontend/backend**: cada build queda versionada por commit (`dist/` y contenedor). Para un rollback basta con redeployar el commit anterior desde GitHub Actions (botón “Re-run job”), reactivar el deployment anterior en Vercel o volver a apuntar `staging` al commit estable antes de fusionarlo con `main`.
+- **Variables de entorno**: mantén una copia cifrada de los `.env` en el repo privado `infra-config` y exporta la configuración actual de cada plataforma antes de realizar cambios mayores.
+- **Plan de recuperación**: en caso de fallo en producción, cambia el tráfico a la instancia de staging (Azure) mientras restauras Vercel con el último deployment estable y reimportas el dump de Supabase si la data quedó comprometida.
 
 ## Seguridad y calidad
 - Secretos gestionados como variables de entorno/secrets en cada plataforma y en GitHub Actions.
