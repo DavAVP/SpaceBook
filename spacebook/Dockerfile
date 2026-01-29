@@ -20,6 +20,6 @@ ENV PORT 8080
 COPY --from=build /app/dist /usr/share/nginx/html
 # Adjust nginx config: listen on 8080 and fallback SPA routes to index.html
 RUN sed -i 's/listen[[:space:]]\+80;/listen 8080;/' /etc/nginx/conf.d/default.conf \
-	&& sed -i 's@try_files \\$uri \\$uri/ =404;@try_files \\$uri \\$uri/ /index.html;@' /etc/nginx/conf.d/default.conf || true
+    && sed -i 's@try_files \\$uri \\$uri/ =404;@try_files \\$uri \\$uri/ /index.html;@' /etc/nginx/conf.d/default.conf
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
