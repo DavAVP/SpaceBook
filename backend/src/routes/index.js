@@ -54,7 +54,7 @@ router.post("/subscription", async (req, res) => {
                 throw new Error("No se pudo guardar la suscripción");
             }
 
-            console.log("Nueva suscripción guardada en Supabase", {
+            console.info("Nueva suscripción guardada en Supabase", {
                 endpoint: sub.endpoint,
                 role,
                 userId,
@@ -76,7 +76,7 @@ router.post("/subscription", async (req, res) => {
                 throw new Error("No se pudo actualizar la suscripción");
             }
 
-            console.log("Suscripción actualizada en Supabase", {
+            console.info("Suscripción actualizada en Supabase", {
                 endpoint: sub.endpoint,
                 role,
                 userId,
@@ -138,7 +138,7 @@ async function purgeSubscriptions(endpoints = []) {
                 if (error) throw error;
             }
         }
-        console.log("Suscripciones inválidas eliminadas:", endpoints);
+        console.info("Suscripciones inválidas eliminadas:", endpoints);
     } catch (err) {
         console.error("No se pudieron eliminar suscripciones inválidas:", err);
     }
@@ -199,14 +199,14 @@ router.post("/new-message", async (req, res) => {
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
         const role = rawRole ? normalizeRole({ role: rawRole }) : null;
-        console.log("/new-message body", { role, userId, title });
+        console.info("/new-message body", { role, userId, title });
         const destinatarios = await getSubscriptions({ role, userId });
         const { sent, attempted } = await dispatchNotifications(
             destinatarios,
             JSON.stringify({ title, message })
         );
 
-        console.log("/new-message result", { attempted, sent });
+        console.info("/new-message result", { attempted, sent });
         if (attempted === 0) {
             return res.status(200).json({ success: true, sent: 0 });
         }
@@ -224,14 +224,14 @@ router.post("/new-reservation-admin", async (req, res) => {
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
 
-        console.log("/new-reservation-admin body", { title });
+        console.info("/new-reservation-admin body", { title });
         const destinatarios = await getSubscriptions({ role: "admin" });
         const { sent, attempted } = await dispatchNotifications(
             destinatarios,
             JSON.stringify({ title, message })
         );
 
-        console.log("/new-reservation-admin result", { attempted, sent });
+        console.info("/new-reservation-admin result", { attempted, sent });
         if (attempted === 0) {
             return res.status(400).json({ error: "No hay admins suscritos" });
         }
@@ -249,14 +249,14 @@ router.post("/new-penalization-admin", async (req, res) => {
 
         if (!message) return res.status(400).json({ error: "Falta el mensaje" });
 
-        console.log("/new-penalization-admin body", { title });
+        console.info("/new-penalization-admin body", { title });
         const destinatarios = await getSubscriptions({ role: "admin" });
         const { sent, attempted } = await dispatchNotifications(
             destinatarios,
             JSON.stringify({ title, message })
         );
 
-        console.log("/new-penalization-admin result", { attempted, sent });
+        console.info("/new-penalization-admin result", { attempted, sent });
         if (attempted === 0) {
             return res.status(400).json({ error: "No hay admins suscritos" });
         }

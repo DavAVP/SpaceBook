@@ -39,8 +39,6 @@ const Penalizacion: React.FC = () => {
       const data = await ReservaService.ObtenerReserva();
       const espacio = await EspacioService.ObtenerEspacios();
       const penalizaciones = await PenalizacionService.ObtenerPenalizaciones();
-
-      console.log("Reservas obtenidas:", data);
       if (Array.isArray(data)) {
         setReservas(data);
       }
@@ -71,7 +69,7 @@ const Penalizacion: React.FC = () => {
 
       for (const reserva of reservasPendientes) {
         if (haVencidoTiempoConfirmacion(reserva, ahora)) {
-          console.log(`Reserva ${reserva.id_reserva} ha superado el límite`);
+          console.warn(`Reserva ${reserva.id_reserva} ha superado el límite`);
 
           // Marcar como vencida y liberar el horario (solo una vez)
           if (reserva.id_reserva) {
@@ -116,7 +114,9 @@ const Penalizacion: React.FC = () => {
   const fetchPenalizaciones = async () => {
     try {
       const data = await PenalizacionService.ObtenerPenalizaciones();
-      console.log("Penalizaciones obtenidas:", data);
+      if (Array.isArray(data)) {
+        setPenalizaciones(data);
+      }
     } catch (error) {
       console.error("Error cargando penalizaciones:", error);
     }
@@ -195,7 +195,7 @@ const Penalizacion: React.FC = () => {
             }
           }
         } catch (e) {
-          console.log("Fallo fallback backend penalizar", e);
+          console.error("Fallo fallback backend penalizar", e);
           toast.error("No se pudo crear la penalización.");
         }
       } else {
@@ -207,7 +207,7 @@ const Penalizacion: React.FC = () => {
         try {
           await ReservaService.ActualizarReserva(reserva.id_reserva, { estado: "penalizado" });
         } catch (e) {
-          console.log("No se pudo actualizar estado a penalizado", e);
+          console.error("No se pudo actualizar estado a penalizado", e);
         }
       }
 
@@ -216,7 +216,7 @@ const Penalizacion: React.FC = () => {
         const nuevas = await PenalizacionService.ObtenerPenalizaciones();
         if (Array.isArray(nuevas)) setPenalizaciones(nuevas);
       } catch (e) {
-        console.log("No se pudo refrescar penalizaciones", e);
+        console.error("No se pudo refrescar penalizaciones", e);
       }
       setReservas((prev) =>
         prev.map((r) =>

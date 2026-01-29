@@ -22,7 +22,7 @@ export async function Suscripcion(user?: {id: string, is_admin: boolean}) {
 
         const payloadJson = suscripcion.toJSON();
         if(!payloadJson?.endpoint || !payloadJson?.keys?.p256dh){
-            console.log('Suscripcion invalida, no se envian al backend')
+            console.warn('Suscripcion invalida, no se envian al backend')
             return;
         }
         
@@ -41,8 +41,7 @@ export async function Suscripcion(user?: {id: string, is_admin: boolean}) {
             console.error("Error al guardar la suscripción:", text);
             return;
         }
-        console.log('Usuario suscrito correctamente');
     } else {
-        console.log('Push notificacion no soporta');
+        console.warn('Push notifications no soportadas en el navegador actual');
     }
 }

@@ -1,10 +1,10 @@
 import { precacheAndRoute } from 'workbox-precaching';
-console.log('Service Worker cargado');
+console.info('Service Worker cargado');
 
 precacheAndRoute(self.__WB_MANIFEST || []);
 
 self.addEventListener('push', event => {
-  console.log('[Service Worker] Push recibido', event.data?.text());
+  console.info('[Service Worker] Push recibido', event.data?.text());
   let data = {};
   try {
     data = event.data.json();
@@ -40,7 +40,7 @@ self.addEventListener('push', event => {
 });
 
 self.addEventListener('notificationclick', event => {
-  console.log('[Service Worker] Clic en la notificación');
+  console.info('[Service Worker] Clic en la notificación');
   event.notification.close();
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })

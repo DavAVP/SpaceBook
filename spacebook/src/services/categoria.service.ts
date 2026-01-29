@@ -16,7 +16,7 @@ export const CategoriaService = {
             .order("nombre", { ascending: true });
 
         if (error) {
-            console.log("Error al obtener las categorías", error.message);
+            console.error("Error al obtener las categorías", error);
             return [];
         }
 
@@ -37,7 +37,7 @@ export const CategoriaService = {
             .single();
 
         if (error) {
-            console.log("Error al crear la categoría", error.message);
+            console.error("Error al crear la categoría", error);
             return null;
         }
 
@@ -61,7 +61,7 @@ export const CategoriaService = {
             .single();
 
         if (error) {
-            console.log("Error al actualizar la categoría", error.message);
+            console.error("Error al actualizar la categoría", error);
             return null;
         }
 
@@ -75,7 +75,7 @@ export const CategoriaService = {
             .eq("id_categoria", id_categoria);
 
         if (error) {
-            console.log("Error al eliminar la categoría", error.message);
+            console.error("Error al eliminar la categoría", error);
             return false;
         }
 

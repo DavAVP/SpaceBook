@@ -8,7 +8,7 @@ export const EspacioService = {
     async crearEspacio(Espacio: IEspacio){
         const {data, error} = await supabase.from('Espacio').insert(Espacio).select().single();
         if(error){
-            console.log('Error al crear el espacio', error.message)
+            console.error('Error al crear el espacio', error)
             return null
         }
         return data as IEspacio
@@ -21,7 +21,7 @@ export const EspacioService = {
             .eq('id_espacio', id_espacio);
 
         if (error) {
-            console.log('Error al actualizar disponibilidad', error); 
+            console.error('Error al actualizar disponibilidad', error); 
             return false;
         }
         return true;
@@ -31,7 +31,7 @@ export const EspacioService = {
     async ObtenerEspacios(){
         const {data, error} = await supabase.from('Espacio').select('*')
         if(error){
-            console.log('Error al obtener los espacios', error.message)
+            console.error('Error al obtener los espacios', error)
             return null
         }
         return data as IEspacio[]
@@ -41,7 +41,7 @@ export const EspacioService = {
     async ObtenerEspacioID(id_espacio: string){
         const {data, error} = await supabase.from('Espacio').select().eq('id_espacio', id_espacio).single()
         if(error){
-            console.log('Error al obtener el espacio', error.message)
+            console.error('Error al obtener el espacio', error)
             return null
         }
         return data as IEspacio
@@ -58,7 +58,7 @@ export const EspacioService = {
             .in('id_espacio', uniqueIds);
 
         if (error) {
-            console.log('Error al obtener espacios por ids', error.message);
+            console.error('Error al obtener espacios por ids', error);
             return [] as Pick<IEspacio, 'id_espacio' | 'nombre_lugar'>[];
         }
 
@@ -70,7 +70,7 @@ export const EspacioService = {
         await supabase.from('HorarioDisponible').update(horario).eq('id_horario', id_horario).select().single()
         const {data, error} = await supabase.from('Espacio').update(espacio).eq('id_espacio', id_espacio).select().single()
         if(error){
-            console.log('Error al actualizar el espacio', error.message)
+            console.error('Error al actualizar el espacio', error)
             return null
         }
         return data as IEspacio        
@@ -81,7 +81,7 @@ export const EspacioService = {
         await supabase.from('HorarioDisponible').delete().eq('espacio_id', espacio_id);
         const {error} = await supabase.from('Espacio').delete().eq('id_espacio', id_espacio);
         if(error){
-            console.log('Error al eliminar el espacio', error.message)
+            console.error('Error al eliminar el espacio', error)
             return false
         }
         return true

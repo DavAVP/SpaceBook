@@ -6,7 +6,7 @@ export const UsuarioService = {
         const {data, error} = await supabase.auth.getUser();
 
         if(error){
-            console.log("Error al encontrar los usuario", error.message)
+            console.error("Error al encontrar los usuario", error.message)
         }
         return data.user;
     },
@@ -15,11 +15,11 @@ export const UsuarioService = {
     async ActualizarUsuario(usuario: any){
         const {data, error} = await supabase.auth.updateUser(usuario)
         if(error){
-            console.log("Error al actualizar al usuario", error.message)
+            console.error("Error al actualizar al usuario", error.message)
             return null;
         }
-        
-        console.log("Usuario actulizado",data.user);
+
+        return data.user;
     },
 
     // Obtener perfiles (nombre) por ids para mostrar en UI
@@ -33,7 +33,7 @@ export const UsuarioService = {
             .in("id", uniqueIds);
 
         if (error) {
-            console.log("Error al obtener perfiles por ids", error.message);
+            console.error("Error al obtener perfiles por ids", error.message);
             return [] as Array<{ id: string; nombre: string | null }>;
         }
 
@@ -66,7 +66,7 @@ export const UsuarioService = {
             const json = await resp.json().catch(() => ({}));
             return (json?.data || []) as Array<{ id: string; nombre: string | null; email: string | null }>;
         } catch (e) {
-            console.log("Error llamando /admin/user-profiles", e);
+            console.error("Error llamando /admin/user-profiles", e);
             return [] as Array<{ id: string; nombre: string | null; email: string | null }>;
         }
     },

@@ -14,16 +14,16 @@ export const ReservaService = {
         .gt("fecha_final", nowIso);
 
       if (penErr) {
-        console.log("Error al verificar penalización activa", penErr);
+        console.error("Error al verificar penalización activa", penErr);
         return null;
       }
 
       if (Array.isArray(penalActivas) && penalActivas.length > 0) {
-        console.log("Usuario con penalización activa. Reserva bloqueada.");
+        console.warn("Usuario con penalización activa. Reserva bloqueada.");
         return null;
       }
     } catch (e) {
-      console.log("Excepción verificando penalización activa", e);
+      console.error("Excepción verificando penalización activa", e);
       return null;
     }
 
@@ -35,12 +35,12 @@ export const ReservaService = {
       .single();
 
     if (horarioErr) {
-      console.log("Error al verificar el horario", horarioErr);
+      console.error("Error al verificar el horario", horarioErr);
       return null;
     }
 
     if (!horario || horario.ocupado) {
-      console.log("Horario ya está ocupado");
+      console.warn("Horario ya está ocupado");
       return null;
     }
 
@@ -52,8 +52,7 @@ export const ReservaService = {
       .single();
 
     if (insertErr) {
-      console.log("Error al crear la reserva", insertErr);
-      console.log("Payload enviado:", reservaPayload);
+      console.error("Error al crear la reserva", insertErr, reservaPayload);
       return null;
     }
 
@@ -66,7 +65,7 @@ export const ReservaService = {
       .eq("id_horario", reservaPayload.horario_id);
 
     if (updateHorarioErr) {
-      console.log("Error al actualizar horario como ocupado", updateHorarioErr);
+      console.error("Error al actualizar horario como ocupado", updateHorarioErr);
       // rollback reserva
       await supabase
         .from("Reserva")
@@ -80,10 +79,8 @@ export const ReservaService = {
 
   async ObtenerReserva() {
     const { data, error } = await supabase.from("Reserva").select("*");
-    console.log("Error en ObtenerReserva:", error);
-    console.log("Data cruda:", data);
     if (error) {
-      console.log("Error al obtener las reservas", error.message);
+      console.error("Error al obtener las reservas", error.message);
       return null;
     }
     return data as IReserva[];
@@ -96,7 +93,7 @@ export const ReservaService = {
       .eq("id_reserva", id_reserva)
       .single();
     if (error) {
-      console.log("Error al obtener la reserva", error.message);
+      console.error("Error al obtener la reserva", error.message);
       return null;
     }
     return data as IReserva;
@@ -110,7 +107,7 @@ export const ReservaService = {
       .select()
       .single();
     if (error) {
-      console.log("Error al actualizar la reserva", error.message);
+      console.error("Error al actualizar la reserva", error.message);
       return null;
     }
     return data as IReserva;
@@ -122,7 +119,7 @@ export const ReservaService = {
       .delete()
       .eq("id_reserva", id_reserva);
     if (error) {
-      console.log("Error al eliminar la reserva", error.message);
+      console.error("Error al eliminar la reserva", error.message);
       return false;
     }
     return true;

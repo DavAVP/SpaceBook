@@ -44,7 +44,6 @@ const App: React.FC = () => {
         id: user.id,
         is_admin: !!user.is_admin,
       })
-        .then(() => console.log("Suscripción lista", user.is_admin ? "(admin)" : "(cliente)"))
         .catch(err => console.error('Error al suscribirse:', err));
     }
   }, [user]);

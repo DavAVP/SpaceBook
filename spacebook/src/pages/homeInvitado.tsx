@@ -15,16 +15,12 @@ const HomeInvitado: React.FC = () => {
 
     const navigate = useNavigate();
 
-    console.log("[HomeInvitado] Component loaded");
-
     useEffect(() => {
         let mounted = true;
 
         const fetchEspacios = async () => {
-            console.log("[HomeInvitado] fetchEspacios start");
             try {
                 const datos = await EspacioService.ObtenerEspacios();
-                console.log("[HomeInvitado] ObtenerEspacios result:", datos);
                 if (!mounted) return;
                 setEspacios(Array.isArray(datos) ? datos : []);
             } catch (err) {
@@ -104,9 +100,7 @@ const HomeInvitado: React.FC = () => {
         setCategoriaSeleccionada(event.target.value);
     };
 
-    const handleReservarClick = (idEspacio: string) => {
-        console.log(`[HomeInvitado] Intento de reserva - Espacio: ${idEspacio}`);
-
+    const handleReservarClick = (_idEspacio: string) => {
         navigate("/login")
     };
 

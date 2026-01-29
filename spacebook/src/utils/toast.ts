@@ -33,7 +33,7 @@ export function showToast(message: string, type: ToastType = 'info', timeout = 3
   } catch (e) {
     // fallback: console
     // eslint-disable-next-line no-console
-    console.log('Toast:', message);
+    console.error('Toast render failed:', e);
   }
 }
 

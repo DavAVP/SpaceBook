@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/servicesWorker.js')
-      .then(() => console.log('services registrador propio'))
+      .then(() => console.info('Service Worker registrado'))
       .catch(err => console.error('Error registrando SW:', err));
   });
 }

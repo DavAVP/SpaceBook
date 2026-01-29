@@ -34,7 +34,6 @@ export default function Register() {
         setMensajeError("No se pudo registrar el usuario. Intenta con otro correo.");
         return;
     }
-    console.log("Usuario registrado:", usuario);
     setMensajeExito("Usuario registrado correctamente")
     };
 

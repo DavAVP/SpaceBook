@@ -43,8 +43,6 @@ export default function Login() {
       return;
     }
 
-    console.log('Usuario logueado', usuario)
-  
     const { data: profile } = await AuthService.supabase
       .from("profiles")
       .select("is_admin")

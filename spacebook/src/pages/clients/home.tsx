@@ -11,19 +11,14 @@ const Home: React.FC = () => {
     const [categorias, setCategorias] = useState<ICategoria[]>([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('todas');
     const [categoriasCargando, setCategoriasCargando] = useState(true);
-    const { user, loading } = useUser();
-
-    console.log("[Home] useUser:", { user, loading });
-    console.log("[Home module] loaded"); 
+    const { loading } = useUser();
 
     useEffect(() => {
         let mounted = true;
 
         const fetchEspacios = async () => {
-            console.log("[Home] fetchEspacios start");
             try {
                 const datos = await EspacioService.ObtenerEspacios();
-                console.log("[Home] ObtenerEspacios result:", datos);
                 if (!mounted) return;
                 setEspacios(Array.isArray(datos) ? datos : []);
             } catch (err) {
@@ -102,7 +97,7 @@ const Home: React.FC = () => {
     return(
         <div>
             <div className="home-page">
-                <h1> Bienvenido a SpaceBooksss </h1>
+                <h1> Bienvenido a SpaceBooks</h1>
                 <p> El sitio donde nunca perderás tiempo por una reservacion!</p>
             </div>
 

@@ -6,7 +6,7 @@ export const NotificacionServices = {
     async crearNotificacion(notificacion: INotificaciones){
         const {data, error} = await supabase.from('Notificacion').insert(notificacion).select().single();
         if(error){
-            console.log('Error al crear la notificacion', error.message)
+            console.error('Error al crear la notificacion', error.message)
             return null
         }
         return data as INotificaciones
@@ -16,7 +16,7 @@ export const NotificacionServices = {
     async ObtenerNotificacion(){
         const {data, error} = await supabase.from('Notificacion').select('*')
         if(error){
-            console.log('Error al obtener las notificaciones', error.message)
+            console.error('Error al obtener las notificaciones', error.message)
             return null
         }
         return data as INotificaciones[]
@@ -26,7 +26,7 @@ export const NotificacionServices = {
     async ObtenerNotificacionID(id_notificacion:string){
         const {data, error} = await supabase.from('Notificacion').select().eq('id_notificacion', id_notificacion).single()
         if(error){
-            console.log('Error al obtener la notificacion', error.message)
+            console.error('Error al obtener la notificacion', error.message)
             return null
         }
         return data as INotificaciones
@@ -36,7 +36,7 @@ export const NotificacionServices = {
     async ActualizarNotificacion(id_notificacion: string, notificacion: Partial<INotificaciones>){
         const {data, error} = await supabase.from('Notificacion').update(notificacion).eq('id_notificacion', id_notificacion).select().single()
         if(error){
-            console.log('Error al actualizar la notificacion', error.message)
+            console.error('Error al actualizar la notificacion', error.message)
             return null
         }
         return data as INotificaciones        
@@ -46,7 +46,7 @@ export const NotificacionServices = {
     async EliminarNotificacion(id_notificacion: string){
         const {error} = await supabase.from('Notificacion').delete().eq('id_notificacion', id_notificacion)
         if(error){
-            console.log('Error al eliminar la notificacion', error.message)
+            console.error('Error al eliminar la notificacion', error.message)
             return false
         }
         return true

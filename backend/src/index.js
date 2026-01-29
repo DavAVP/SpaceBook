@@ -25,6 +25,6 @@ app.use(express.json())
 app.use(require('./routes/index'))
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, () => console.info(`Servidor corriendo en puerto ${PORT}`));
 
 module.exports = app;
