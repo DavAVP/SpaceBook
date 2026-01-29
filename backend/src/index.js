@@ -6,10 +6,9 @@ const app = express()
 const path = require('path')
 
 const allowedOrigins = [
-    'http://localhost:4173',
-    'http://localhost:5173',
-    'https://spacebook-lime.vercel.app',
-    process.env.FRONTEND_URL
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL_AZURE,
+    process.env.FRONTEND_URL_CLOUD
 ].filter(Boolean);
 app.use(cors({
 
