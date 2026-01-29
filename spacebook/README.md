@@ -63,20 +63,39 @@ npm install
 	cd backend
 	npm start
 	```
-	El servidor expone los endpoints REST en `http://localhost:8080` (configurable).
 
 2. **Frontend**
 	```bash
 	cd spacebook
 	npm run dev
 	```
-	Vite levanta la aplicación en `http://localhost:5173`.
+
 
 3. Registra el Service Worker (solo en HTTPS o `localhost`) y prueba el flujo de notificaciones creando suscripciones desde una sesión autenticada.
 
 ## Pruebas
 - Frontend: `npm run test` (Vitest + React Testing Library).
 - Backend: `npm test` (Jest + Supertest).
+
+## Flujo CI/CD y ramas
+- Estrategia GitHub Flow: crear branches por feature o fix desde `main`, abrir Pull Request con revisiones y mergear tras aprobar y pasar pipelines.
+- El workflow [Full CI/CD (Frontend + Backend)](.github/workflows/node.js.yml) ejecuta lint/test/build en cada push/PR.
+- Tras éxito, `main` despliega automáticamente: Vercel como producción primaria, Azure Static Web Apps como staging estable y Cloud Run como despliegue contenedorizado alternativo.
+
+## Monitoreo, métricas y registros
+- Frontend: revisar logs de Azure Static Web Apps y Cloud Run (Cloud Logging) para errores en runtime; Vercel y Render ofrecen dashboards con métricas básicas.
+- Backend: Render expone logs en tiempo real; Supabase registra auditorías de autenticación y RLS.
+- Alertas manuales: configurar notificaciones en cada plataforma (Render, Azure, Google Cloud) para fallos de despliegue o errores 5xx.
+
+## Respaldo y rollback
+- Supabase mantiene backups automáticos; generar exports periódicos desde la consola antes de cambios significativos.
+- Configuración de entorno: variables gestionadas en Render/Azure/Cloud Run; exportar snapshots antes de ediciones críticas.
+- Rollback de despliegues: en Vercel/Azure/Cloud Run se puede promover el deployment anterior o redeployar un commit previo vía GitHub Actions.
+
+## Seguridad y calidad
+- Secretos gestionados como variables de entorno/secrets en cada plataforma y en GitHub Actions.
+- Codacy analiza el repositorio en cada push para detectar vulnerabilidades y malas prácticas; revisar panel de Codacy tras cada release.
+- HTTPS provisto por Vercel, Azure y Cloud Run; Supabase y Web Push requieren URLs seguras.
 
 ## Construcción y despliegue
 - Frontend: `npm run build` genera artefactos en `spacebook/dist/`. El repositorio incluye `spacebook/vite.config.ts` y `spacebook/vercel.json` para despliegues PWA y vercel/azure.

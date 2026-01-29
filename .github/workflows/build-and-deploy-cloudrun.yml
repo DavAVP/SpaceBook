@@ -43,7 +43,8 @@ jobs:
           docker build \
             --build-arg VITE_SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
             --build-arg VITE_SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
-            --build-arg VITE_VAPID_PUBLIC="${{ secrets.VITE_VAPID_PUBLIC }}" \
+            --build-arg VITE_VAPID_PUBLIC_KEY="${{ secrets.VITE_VAPID_PUBLIC_KEY }}" \
+            --build-arg VITE_API_URL="${{ secrets.VITE_API_URL }}" \
             -t us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/spacebook-repo/${{ env.SERVICE }}:${{ github.sha }} ./spacebook
 
       - name: Push image to Artifact Registry
